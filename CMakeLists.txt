@@ -2,7 +2,12 @@ cmake_minimum_required(VERSION 3.5.0)
 project(RaveCylinder VERSION 0.1.0 LANGUAGES C CXX)
 configure_file(RaveCylinder.h.in RaveCylinder.h)
 
-add_executable(RaveCylinder main.cpp)
+SET(SOURCES
+    DDPOutput.h DDPOutput.cpp
+    UDPClient.h main.cpp
+   )
+
+add_executable(RaveCylinder ${SOURCES})
 
 target_include_directories(RaveCylinder PUBLIC
                            "${PROJECT_BINARY_DIR}"

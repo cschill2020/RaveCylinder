@@ -1,4 +1,5 @@
 #include <arpa/inet.h>
+#include <iostream>
 #include <netdb.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -43,29 +44,37 @@ public:
       return false;
     }
 
-    // Extract the ipv4 or 6 ip address from the result.
-    server_address_ = address_result;
-    while (server_address_ != nullptr) {
+    // loop through all the results and connect to the first we can
+    for (server_address_ = address_result; server_address_ != NULL;
+         server_address_ = server_address_->ai_next) {
       void *address_ptr = nullptr;
       socket_ = socket(server_address_->ai_family, server_address_->ai_socktype,
                        server_address_->ai_protocol);
       if (socket_ < 0) {
         perror("socket");
-        server_address_ = server_address_->ai_next;
-      } else {
-        return true;
+        continue;
       }
+      // if (connect(socket_, server_address_->ai_addr,
+      //             server_address_->ai_addrlen) == -1) {
+      //   close(socket_);
+      //   perror("client: connect");
+      //   continue;
+      // }
+      return true;
     }
 
-    // Is this bad (address_result was copied to private member server_address_)?
+    // Is this bad (address_result was copied to private member
+    // server_address_)?
     freeaddrinfo(address_result);
     return false;
   }
 
-  void SendTo(const std::string &message) {
+  void SendTo(const std::vector<uint8_t> &bytes) {
+    const char *char_bytes = reinterpret_cast<const char *>(bytes.data());
     int num_bytes =
-        sendto(socket_, message.c_str(), strlen(message.c_str()), 0,
-               server_address_->ai_addr, server_address_->ai_addrlen);
+        sendto(socket_, char_bytes, bytes.size(), 0, server_address_->ai_addr,
+               server_address_->ai_addrlen);
+
     if (num_bytes < 0) {
       perror("sendto");
     }
