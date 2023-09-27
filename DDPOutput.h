@@ -7,28 +7,23 @@
 #include <cstdint>
 #include <vector>
 
+#include "Pixel.h"
+
+namespace ravecylinder {
+
 #define NUM_PIXELS 3
-
-// What if I have 32 or 8 byte pixels?
-struct Pixel {
-  uint8_t R;
-  uint8_t G;
-  uint8_t B;
-};
-
-struct DenseFrame {
-  Pixel pixel[NUM_PIXELS];
-};
 
 class DDPOutput {
 public:
   DDPOutput();
   ~DDPOutput() {}
 
-  void GenerateFrame(const DenseFrame &frame, uint32_t offset);
+  void GenerateFrame(const CRGB* pixels, uint32_t offset);
   std::vector<uint8_t> GetBytes();
 
 private:
   std::vector<uint8_t> packet_;
   std::vector<uint8_t> CreateTestDDPHeader(uint32_t offset);
 };
+
+}

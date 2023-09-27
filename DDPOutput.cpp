@@ -9,6 +9,8 @@
 #include <iostream>
 #include <string>
 
+namespace ravecylinder {
+
 #define DDP_HEADER_LEN 10
 #define DDP_MAX_DATALEN (480 * 3) // 1440 fits nicely in an ethernet packet
 #define DDP_PACKET_LEN (DDP_HEADER_LEN + DDP_MAX_DATALEN)
@@ -54,20 +56,17 @@ std::vector<uint8_t> DDPOutput::CreateTestDDPHeader(uint32_t offset) {
   return header;
 }
 
-void DDPOutput::GenerateFrame(const DenseFrame &frame, uint32_t offset) {
+void DDPOutput::GenerateFrame(const CRGB* pixels, uint32_t offset) {
   std::vector<uint8_t> header = CreateTestDDPHeader(offset);
   packet_.insert(packet_.end(), header.begin(), header.end());
   for (int i = 0; i < NUM_PIXELS; ++i) {
-    packet_.push_back(frame.pixel[i].R);
-    packet_.push_back(frame.pixel[i].G);
-    packet_.push_back(frame.pixel[i].B);
+    packet_.push_back(pixels[i].red);
+    packet_.push_back(pixels[i].green);
+    packet_.push_back(pixels[i].blue);
   }
 }
 
 std::vector<uint8_t> DDPOutput::GetBytes() {
   return packet_;
 }
-
-// for example code bel ow:
-// struct ddp_hdr_struct dh;    // header storage
-// unsigned char *databuf; // pointer to data buffer
+}
