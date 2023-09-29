@@ -11,7 +11,7 @@
 
 namespace ravecylinder {
 
-#define NUM_PIXELS 3
+#define NUM_PIXELS 100
 
 class DDPOutput {
 public:

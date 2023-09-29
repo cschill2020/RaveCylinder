@@ -69,7 +69,7 @@ public:
     return false;
   }
 
-  void SendTo(const std::vector<uint8_t> &bytes) {
+  void SendTo(const std::vector<uint8_t> &bytes) const {
     const char *char_bytes = reinterpret_cast<const char *>(bytes.data());
     int num_bytes =
         sendto(socket_, char_bytes, bytes.size(), 0, server_address_->ai_addr,
