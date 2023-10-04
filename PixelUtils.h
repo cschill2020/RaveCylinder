@@ -259,19 +259,12 @@ void hsv2rgb_rainbow(const CHSV &hsv, CRGB &rgb) {
       // satscale = sat; // uncomment to revert to pre-2021 saturation behavior
 
       // nscale8x3_video( r, g, b, sat);
-#if (FASTLED_SCALE8_FIXED == 1)
-      r = scale8_LEAVING_R1_DIRTY(r, satscale);
-      g = scale8_LEAVING_R1_DIRTY(g, satscale);
-      b = scale8_LEAVING_R1_DIRTY(b, satscale);
-      cleanup_R1();
-#else
       if (r)
-        r = scale8(r, satscale) + 1;
+        r = scale8(r, satscale);
       if (g)
-        g = scale8(g, satscale) + 1;
+        g = scale8(g, satscale);
       if (b)
-        b = scale8(b, satscale) + 1;
-#endif
+        b = scale8(b, satscale);
       uint8_t brightness_floor = desat;
       r += brightness_floor;
       g += brightness_floor;
@@ -289,19 +282,9 @@ void hsv2rgb_rainbow(const CHSV &hsv, CRGB &rgb) {
       b = 0;
     } else {
       // nscale8x3_video( r, g, b, val);
-#if (FASTLED_SCALE8_FIXED == 1)
-      r = scale8_LEAVING_R1_DIRTY(r, val);
-      g = scale8_LEAVING_R1_DIRTY(g, val);
-      b = scale8_LEAVING_R1_DIRTY(b, val);
-      cleanup_R1();
-#else
-      if (r)
-        r = scale8(r, val) + 1;
-      if (g)
-        g = scale8(g, val) + 1;
-      if (b)
-        b = scale8(b, val) + 1;
-#endif
+      r = scale8(r, val);
+      g = scale8(g, val);
+      b = scale8(b, val);
     }
   }
 

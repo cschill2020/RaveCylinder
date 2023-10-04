@@ -315,10 +315,10 @@ struct CRGB {
   /// it's already nonzero, it'll stay nonzero, even if that means the hue
   /// shifts a little at low brightness levels.
   /// @see nscale8x3_video
-  //   inline CRGB &nscale8_video(uint8_t scaledown) {
-  //     nscale8x3_video(r, g, b, scaledown);
-  //     return *this;
-  //   }
+  inline CRGB &nscale8_video(uint8_t scaledown) {
+    nscale8x3_video(r, g, b, scaledown);
+    return *this;
+  }
 
   /// %= is a synonym for nscale8_video().  Think of it is scaling down
   /// by "a percentage"
@@ -340,10 +340,10 @@ struct CRGB {
   /// "plain math" dimming rules. "Plain math" dimming rules means that the
   /// low light levels may dim all the way to 100% black.
   /// @see nscale8x3
-  //   inline CRGB &nscale8(uint8_t scaledown) {
-  //     nscale8x3(r, g, b, scaledown);
-  //     return *this;
-  //   }
+  inline CRGB &nscale8(uint8_t scaledown) {
+    nscale8x3(r, g, b, scaledown);
+    return *this;
+  }
 
   /// Scale down a RGB to N/256ths of its current brightness, using
   /// "plain math" dimming rules. "Plain math" dimming rules means that the
