@@ -54,19 +54,12 @@ void movingDots() {
 
   uint16_t posBeat = beatsin16(30, 0, NUM_PIXELS - 1, 0, 0);
   uint16_t posBeat2 = beatsin16(60, 0, NUM_PIXELS - 1, 0, 0);
-  std::cout<<"posBeat="<<posBeat<<std::endl;
-  std::cout<<"posBeat2="<<posBeat2<<std::endl;
-  std::cout << "1+2/2="<<(posBeat+posBeat2)/2 << std::endl;
 
   uint16_t posBeat3 = beatsin16(30, 0, NUM_PIXELS - 1, 0, 32767);
   uint16_t posBeat4 = beatsin16(60, 0, NUM_PIXELS - 1, 0, 32767);
-  std::cout<<"posBeat3="<<posBeat3<<std::endl;
-  std::cout<<"posBeat4="<<posBeat4<<std::endl;
-  std::cout << "3+4/2="<<(posBeat3+posBeat4)/2 << std::endl;
 
   // Wave for LED color
   uint8_t colBeat = beatsin8(45, 0, 255, 0, 0);
-  std::cout << "colBeat " << (int)colBeat << std::endl;
 
   pixels[(posBeat + posBeat2) / 2] = CHSV(colBeat, 255, 255);
   pixels[(posBeat3 + posBeat4) / 2] = CHSV(colBeat, 255, 255);
@@ -96,7 +89,6 @@ void redWhiteBlue() {
 
 void testSin8() {
   uint16_t sinBeat = beatsin16(30, 0, NUM_PIXELS - 1, 0, 0);
-  std::cout<< "sinBeat=" << (int)sinBeat <<std::endl;
   pixels[sinBeat] = CRGB::Blue;
   fadeToBlackBy(pixels, NUM_PIXELS, 100);
 }
