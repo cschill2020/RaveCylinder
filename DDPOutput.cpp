@@ -32,11 +32,20 @@ namespace ravecylinder {
 
 DDPOutput::DDPOutput() {}
 
-std::vector<uint8_t> DDPOutput::CreateTestDDPHeader(uint32_t offset) {
+// TODO This is hacked for testing.  Will not work with more than a few
+// hundred pixels or if the strip is on a channel other than 1.
+// 1: Only set PUSH if it is the last packet for the frame.
+// 2: Apply offset when there are more pixels than available packet size.
+std::vector<uint8_t> DDPOutput::CreateTestDDPHeader(uint32_t offset,
+                                                    bool push_frame = true) {
   /* Header will be 10 bytes */
   std::vector<uint8_t> header;
   // Byte 0: Config Flags
-  header.push_back(DDP_FLAGS1_VER1 | DDP_FLAGS1_PUSH);
+  if (push_frame) {
+    header.push_back(DDP_FLAGS1_VER1 | DDP_FLAGS1_PUSH);
+  } else {
+    header.push_back(DDP_FLAGS1_VER1);
+  }
   // Byte 1: Sequnece #
   header.push_back(0x00);
   // Byte 2: I do not think this is used by FPP.
@@ -50,13 +59,13 @@ std::vector<uint8_t> DDPOutput::CreateTestDDPHeader(uint32_t offset) {
   header.push_back((offset & 0xFF00) >> 8);
   header.push_back((offset & 0xFF));
   // Test data has length 9 (3 channels * 3 RGB), 27 pixels.  I think...
-  header.push_back((NUM_PIXELS*3 & 0xFF00) >> 8);
-  header.push_back(NUM_PIXELS*3 & 0xFF);
+  header.push_back((NUM_PIXELS * 3 & 0xFF00) >> 8);
+  header.push_back(NUM_PIXELS * 3 & 0xFF);
 
   return header;
 }
 
-void DDPOutput::GenerateFrame(const CRGB* pixels, uint32_t offset) {
+void DDPOutput::GenerateFrame(const CRGB *pixels, uint32_t offset) {
   std::vector<uint8_t> header = CreateTestDDPHeader(offset);
   packet_.insert(packet_.end(), header.begin(), header.end());
   for (int i = 0; i < NUM_PIXELS; ++i) {
@@ -66,7 +75,5 @@ void DDPOutput::GenerateFrame(const CRGB* pixels, uint32_t offset) {
   }
 }
 
-std::vector<uint8_t> DDPOutput::GetBytes() {
-  return packet_;
-}
-}
+std::vector<uint8_t> DDPOutput::GetBytes() { return packet_; }
+} // namespace ravecylinder

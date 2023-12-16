@@ -11,7 +11,7 @@
 
 namespace ravecylinder {
 
-#define NUM_PIXELS 10
+#define NUM_PIXELS 100
 
 class DDPOutput {
 public:
@@ -23,7 +23,7 @@ public:
 
 private:
   std::vector<uint8_t> packet_;
-  std::vector<uint8_t> CreateTestDDPHeader(uint32_t offset);
+  std::vector<uint8_t> CreateTestDDPHeader(uint32_t offset, bool push_frame);
 };
 
 }

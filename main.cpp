@@ -64,7 +64,7 @@ void movingDots() {
   pixels[(posBeat + posBeat2) / 2] = CHSV(colBeat, 255, 255);
   pixels[(posBeat3 + posBeat4) / 2] = CHSV(colBeat, 255, 255);
 
-  fadeToBlackBy(pixels, NUM_PIXELS, 10);
+  fadeToBlackBy(pixels, NUM_PIXELS, 50);
 }
 
 void rainbowBeat() {
@@ -100,11 +100,11 @@ int main() {
   auto delay_time = 5s;
   auto target_time = clock_type::now() + delay_time;
   int nloops = 0;
-  while (nloops++ < 1000) {
+  while (true) {
     switch (pattern_counter) {
     case 0:
-      testSin8();
-      //movingDots();
+      //testSin8();
+      movingDots();
       break;
     case 1:
       rainbowBeat();
@@ -114,11 +114,11 @@ int main() {
       break;
     }
 
-    //if (clock_type::now() > (target_time)) {
-    //nextPattern();
-    //target_time += delay_time;
-    //}
-    // FastLED.show();
+    if (clock_type::now() > (target_time)) {
+      nextPattern();
+      target_time += delay_time;
+    }
+    // Basically FastLED.show();
     DDPOutput output2;
     output2.GenerateFrame(pixels, 0);
     client.SendTo(output2.GetBytes());
