@@ -11,19 +11,28 @@
 
 namespace ravecylinder {
 
-#define NUM_PIXELS 100
+#define NUM_PIXELS 1000
+
+struct Packet {
+  std::vector<uint8_t> header;
+  std::vector<uint8_t> pixel_data;
+  std::vector<uint8_t> GetBytes() {
+    std::vector rtrn = header;
+    rtrn.insert(rtrn.end(), pixel_data.begin(), pixel_data.end());
+    return rtrn;
+  }
+};
 
 class DDPOutput {
 public:
   DDPOutput();
   ~DDPOutput() {}
 
-  void GenerateFrame(const CRGB* pixels, uint32_t offset);
-  std::vector<uint8_t> GetBytes();
+  std::vector<Packet> GenerateFrame(const CRGB *pixels);
 
 private:
-  std::vector<uint8_t> packet_;
-  std::vector<uint8_t> CreateTestDDPHeader(uint32_t offset, bool push_frame);
+  void SetDDPPacketHeader(std::vector<uint8_t> *packet, uint32_t offset,
+                          uint16_t num_pixels_in_packet, bool push_frame);
 };
 
-}
+} // namespace ravecylinder

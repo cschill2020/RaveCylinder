@@ -12,9 +12,12 @@
 namespace ravecylinder {
 
 #define DDP_HEADER_LEN 10
-#define DDP_MAX_DATALEN (480 * 3) // 1440 fits nicely in an ethernet packet
+#define DDP_MAX_PIXELS_PER_PACKET 480
+#define DDP_MAX_DATALEN                                                        \
+  (DDP_MAX_PIXELS_PER_PACKET * 3) // 1440 fits nicely in an ethernet packet
 #define DDP_PACKET_LEN (DDP_HEADER_LEN + DDP_MAX_DATALEN)
-
+// For WS2811 this is 3
+#define NUM_LED_PER_PIXEL 3
 // Used as bit mask for the DDP header config byte 0.
 // For this we only need VER1 and PUSH.  They are
 // defined for posterity.
@@ -32,48 +35,69 @@ namespace ravecylinder {
 
 DDPOutput::DDPOutput() {}
 
-// TODO This is hacked for testing.  Will not work with more than a few
-// hundred pixels or if the strip is on a channel other than 1.
 // 1: Only set PUSH if it is the last packet for the frame.
 // 2: Apply offset when there are more pixels than available packet size.
-std::vector<uint8_t> DDPOutput::CreateTestDDPHeader(uint32_t offset,
-                                                    bool push_frame = true) {
-  /* Header will be 10 bytes */
-  std::vector<uint8_t> header;
+void DDPOutput::SetDDPPacketHeader(std::vector<uint8_t> *packet,
+                                   uint32_t offset,
+                                   uint16_t num_pixels_in_packet,
+                                   bool push_frame = false) {
+  std::cout << "uoffset = " << offset << std::endl;
+  std::cout << "ulen = " << num_pixels_in_packet << std::endl;
+  // DDP Header is 10 bytes
   // Byte 0: Config Flags
   if (push_frame) {
-    header.push_back(DDP_FLAGS1_VER1 | DDP_FLAGS1_PUSH);
+    packet->push_back(DDP_FLAGS1_VER1 | DDP_FLAGS1_PUSH);
   } else {
-    header.push_back(DDP_FLAGS1_VER1);
+    packet->push_back(DDP_FLAGS1_VER1);
   }
   // Byte 1: Sequnece #
-  header.push_back(0x00);
+  packet->push_back(0x00);
   // Byte 2: I do not think this is used by FPP.
-  header.push_back(0x00);
+  packet->push_back(0x00);
   // Byte 3: Device ID of Display.  Not sure how it is
   // used by FPP yet, so keeping it default.
-  header.push_back(DDP_ID_DISPLAY);
+  packet->push_back(DDP_ID_DISPLAY);
   // Offset: DDP Backend expects BigEndian.
-  header.push_back((offset & 0xFF000000) >> 24);
-  header.push_back((offset & 0xFF0000) >> 16);
-  header.push_back((offset & 0xFF00) >> 8);
-  header.push_back((offset & 0xFF));
+  packet->push_back((offset & 0xFF000000) >> 24);
+  packet->push_back((offset & 0xFF0000) >> 16);
+  packet->push_back((offset & 0xFF00) >> 8);
+  packet->push_back((offset & 0xFF));
   // Test data has length 9 (3 channels * 3 RGB), 27 pixels.  I think...
-  header.push_back((NUM_PIXELS * 3 & 0xFF00) >> 8);
-  header.push_back(NUM_PIXELS * 3 & 0xFF);
-
-  return header;
+  packet->push_back(((num_pixels_in_packet * NUM_LED_PER_PIXEL) & 0xFF00) >> 8);
+  packet->push_back((num_pixels_in_packet * NUM_LED_PER_PIXEL) & 0xFF);
 }
 
-void DDPOutput::GenerateFrame(const CRGB *pixels, uint32_t offset) {
-  std::vector<uint8_t> header = CreateTestDDPHeader(offset);
-  packet_.insert(packet_.end(), header.begin(), header.end());
-  for (int i = 0; i < NUM_PIXELS; ++i) {
-    packet_.push_back(pixels[i].red);
-    packet_.push_back(pixels[i].green);
-    packet_.push_back(pixels[i].blue);
+std::vector<Packet> DDPOutput::GenerateFrame(const CRGB *pixels) {
+  // Number of pixels in the last packet;
+  uint16_t rem_pixels = NUM_PIXELS % DDP_MAX_PIXELS_PER_PACKET;
+  // Total number of packets;
+  uint16_t tot_packets = NUM_PIXELS / DDP_MAX_PIXELS_PER_PACKET;
+  if (rem_pixels != 0) {
+    tot_packets += 1;
   }
+  std::vector<Packet> packets;
+  int packet_ctr = 0;
+  for (int i = 0; i < NUM_PIXELS; ++i) {
+    // Create a new packet.
+    if (i % DDP_MAX_PIXELS_PER_PACKET == 0) {
+      Packet packet;
+      bool push = false;
+      uint16_t num_pixels_in_packet = DDP_MAX_PIXELS_PER_PACKET;
+      // Push if last packet contains all the LEDs
+      if (packet_ctr == tot_packets - 1) {
+        num_pixels_in_packet = rem_pixels;
+        push = true;
+      }
+      uint32_t offset = packet_ctr * DDP_MAX_DATALEN;
+      SetDDPPacketHeader(&packet.header, offset, num_pixels_in_packet, push);
+      packets.push_back(packet);
+      packet_ctr++;
+    }
+    packets[packet_ctr - 1].pixel_data.push_back(pixels[i].red);
+    packets[packet_ctr - 1].pixel_data.push_back(pixels[i].green);
+    packets[packet_ctr - 1].pixel_data.push_back(pixels[i].blue);
+  }
+  return packets;
 }
 
-std::vector<uint8_t> DDPOutput::GetBytes() { return packet_; }
 } // namespace ravecylinder

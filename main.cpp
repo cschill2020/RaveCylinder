@@ -21,27 +21,27 @@ void Blink(const UDPClient &udp_client) {
   pixels[1] = CRGB(CRGB::Green);
   pixels[2] = CRGB(CRGB::Blue);
 
-  DDPOutput output1;
-  output1.GenerateFrame(pixels, 0);
-  udp_client.SendTo(output1.GetBytes());
+  //DDPOutput output1;
+  //output1.GenerateFrame(pixels, 0);
+  //udp_client.SendTo(output1.GetBytes());
   std::this_thread::sleep_for(std::chrono::milliseconds(40));
 
   pixels[0] = CRGB(CRGB::Black);
   pixels[1] = CRGB(CRGB::Black);
   pixels[2] = CRGB(CRGB::Black);
 
-  DDPOutput output2;
-  output2.GenerateFrame(pixels, 0);
-  udp_client.SendTo(output2.GetBytes());
-  std::this_thread::sleep_for(std::chrono::milliseconds(40));
+  //DDPOutput output2;
+  //output2.GenerateFrame(pixels, 0);
+  //udp_client.SendTo(output2.GetBytes());
+  //std::this_thread::sleep_for(std::chrono::milliseconds(40));
 }
 
 void TestHue(const UDPClient &udp_client, uint8_t hue) {
   for (int i = 0; i < NUM_PIXELS; ++i) {
     pixels[i] = CHSV(hue + (i * 10), 255, 255);
-    DDPOutput output2;
-    output2.GenerateFrame(pixels, 0);
-    udp_client.SendTo(output2.GetBytes());
+    //DDPOutput output2;
+    //output2.GenerateFrame(pixels, 0);
+    //udp_client.SendTo(output2.GetBytes());
   }
 }
 
@@ -119,9 +119,14 @@ int main() {
       target_time += delay_time;
     }
     // Basically FastLED.show();
-    DDPOutput output2;
-    output2.GenerateFrame(pixels, 0);
-    client.SendTo(output2.GetBytes());
+    DDPOutput output;
+    std::vector<Packet> packets = output.GenerateFrame(pixels);
+    for (auto& packet : packets) {
+      //client.SendTo(packet.GetBytes());
+      for (int i = 0; i < 10; ++i) {
+        std::cout << unsigned( packet.GetBytes()[i]) << std::endl;
+      }
+    }
     std::this_thread::sleep_for(std::chrono::milliseconds(25));
   }
 }
