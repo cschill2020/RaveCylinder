@@ -8,7 +8,7 @@
 #include <thread>
 
 #define DDP_PORT "4048"
-#define NUM_PIXELS 10
+#define NUM_PIXELS 20
 
 using namespace std::literals;
 
@@ -16,10 +16,13 @@ using namespace ravecylinder;
 
 CRGB pixels[NUM_PIXELS];
 
-uint8_t pattern_counter = 3;
+CRGBPalette16 currentPalette;
+TBlendType currentBlending; // NOBLEND or LINEARBLEND
+
+uint8_t pattern_counter = 0;
 void nextPattern() {
   std::cout << "pattern_counter: " << unsigned(pattern_counter) << std::endl;
-  pattern_counter = (pattern_counter + 1) % 4;
+  pattern_counter = (pattern_counter + 1) % 5;
 }
 
 //------- Put your patterns below -------//
@@ -38,52 +41,19 @@ void testSin8() {
   fadeToBlackBy(pixels, NUM_PIXELS, 10);
 }
 
-uint8_t gHue = 0;
-void sinelon() {
+void sinelon(uint8_t hue) {
   // a colored dot sweeping back and forth, with fading trails
   fadeToBlackBy(pixels, NUM_PIXELS, 10);
-  int pos = beatsin16(13, 0, NUM_PIXELS - 1);
-  pixels[pos] += CHSV(gHue, 255, 192);
+  int pos = beatsin16(30, 0, NUM_PIXELS - 1);
+  pixels[pos] += CHSV(hue, 255, 192);
 }
 
-CRGBPalette16 currentPalette;
-CRGBPalette16 targetPalette;
-TBlendType currentBlending; // NOBLEND or LINEARBLEND
-int gHue2 = 0;
-void sinelon2() { // a colored dot sweeping back and forth, with fading trails
-
-  // fadeToBlackBy(pixels, NUM_PIXELS, 32);
-  int pos1 = beatsin16(23, 0, NUM_PIXELS - 1);
-  int pos2 = beatsin16(28, 0, NUM_PIXELS - 1);
-
-  pixels[(pos1 + pos2) / 2] +=
-      ColorFromPalette(currentPalette, gHue2++, 255, currentBlending);
-
-} // sinelon()
-
-void sinelon2Loop() {
-  EVERY_N_MILLIS(100) {
-    uint8_t maxChanges = 24;
-    nblendPaletteTowardPalette(
-        currentPalette, targetPalette,
-        maxChanges); // AWESOME palette blending capability.
-  }
-
-  EVERY_N_SECONDS(
-      5) { // Change the target palette to a random one every 5 seconds.
-    static uint8_t baseC =
-        random8(); // You can use this as a baseline colour if you want
-                   // similar hues in the next line.
-    targetPalette = CRGBPalette16(CHSV(random8(), 255, random8(128, 255)),
-                                  CHSV(random8(), 255, random8(128, 255)),
-                                  CHSV(random8(), 192, random8(128, 255)),
-                                  CHSV(random8(), 255, random8(128, 255)));
-  }
-  EVERY_N_MILLIS(50) { // FastLED based non-blocking delay to update/display
-    fadeToBlackBy(pixels, NUM_PIXELS, 32);
-  }           // the sequence.
-  sinelon2(); // Call our sequence.
-              //}
+void sinelonWithPalette(uint8_t color_index) {
+  // a colored dot sweeping back and forth, with fading trails
+  fadeToBlackBy(pixels, NUM_PIXELS, 10);
+  int pos = beatsin16(30, 0, NUM_PIXELS - 1);
+  pixels[pos] = ColorFromPalette(currentPalette, color_index, 100,
+                                         currentBlending);
 }
 
 // This function fills the palette with totally random colors.
@@ -118,11 +88,7 @@ void SetupPurpleAndGreenPalette() {
                     green, green, black, black, purple, purple, black, black);
 }
 
-// This example shows how to set up a static color palette
-// which is stored in PROGMEM (flash), which is almost always more
-// plentiful than RAM.  A static PROGMEM palette like this
-// takes up 64 bytes of flash.
-const TProgmemPalette16 myRedWhiteBluePalette = {
+const CRGBPalette16 myRedWhiteBluePalette = {
     CRGB::Red,
     CRGB::Gray, // 'white' is too bright compared to red and blue
     CRGB::Blue, CRGB::Black,
@@ -142,10 +108,6 @@ void ChangePalettePeriodically() {
       currentPalette = RainbowColors;
       currentBlending = LINEARBLEND;
     }
-    if (secondHand == 10) {
-      currentPalette = RainbowStripeColors;
-      currentBlending = NOBLEND;
-    }
     if (secondHand == 15) {
       currentPalette = RainbowStripeColors;
       currentBlending = LINEARBLEND;
@@ -158,10 +120,6 @@ void ChangePalettePeriodically() {
       SetupTotallyRandomPalette();
       currentBlending = LINEARBLEND;
     }
-    if (secondHand == 30) {
-      SetupBlackAndWhiteStripedPalette();
-      currentBlending = NOBLEND;
-    }
     if (secondHand == 35) {
       SetupBlackAndWhiteStripedPalette();
       currentBlending = LINEARBLEND;
@@ -173,10 +131,6 @@ void ChangePalettePeriodically() {
     if (secondHand == 45) {
       currentPalette = PartyColors;
       currentBlending = LINEARBLEND;
-    }
-    if (secondHand == 50) {
-      currentPalette = myRedWhiteBluePalette;
-      currentBlending = NOBLEND;
     }
     if (secondHand == 55) {
       currentPalette = myRedWhiteBluePalette;
@@ -191,47 +145,45 @@ void FillLEDsFromPaletteColors(uint8_t colorIndex) {
   for (int i = 0; i < NUM_PIXELS; ++i) {
     const auto &color = ColorFromPalette(currentPalette, colorIndex, brightness,
                                          currentBlending);
-    std::cout << "index: " << i << std::endl;
-    std::cout << "color r: " << unsigned(color.r) << std::endl;
-    std::cout << "color g: " << unsigned(color.g) << std::endl;
-    std::cout << "color b: " << unsigned(color.b) << std::endl;
     pixels[i] = color;
     colorIndex += 3;
   }
 }
 
-// void PaletteLoop() {
-// }
-
 int main() {
   UDPClient client;
   client.OpenConnection("ravecylinder.local", DDP_PORT);
 
-  // currentBlending = LINEARBLEND;
-  //SetupPurpleAndGreenPalette();
-  currentBlending = NOBLEND;
   while (true) {
-    // ChangePalettePeriodically();
+    ChangePalettePeriodically();
     switch (pattern_counter) {
     case 0:
-      sinelon2Loop();
+      EVERY_N_MILLIS(20) {
+        static uint8_t ghue = 0;
+        sinelon(ghue++);
+      }
       break;
     case 1:
-      rainbowBeat();
+      EVERY_N_MILLIS(20) {
+        static uint8_t color_index = 0;
+        sinelonWithPalette(color_index++);
+      }
       break;
     case 2:
-      testSin8();
+      rainbowBeat();
       break;
     case 3:
+      testSin8();
+      break;
+    case 4:
       EVERY_N_MILLIS(10) {
         static uint8_t startIndex = 0;
         startIndex = startIndex + 1; /* motion speed */
-        //std::cout << unsigned(startIndex) << std::endl;
         FillLEDsFromPaletteColors(startIndex);
       }
+      break;
     }
-    // EVERY_N_MILLIS(20) { ++gHue; }
-    // EVERY_N_SECONDS(5) { nextPattern(); }
+    EVERY_N_SECONDS(5) { nextPattern(); }
 
     // TDOD: Separate the frame generation and display into parallel threads
     // using a TaskScheduler.
@@ -240,6 +192,6 @@ int main() {
     for (auto &packet : packets) {
       client.SendTo(packet.GetBytes());
     }
-    std::this_thread::sleep_for(std::chrono::milliseconds(5));
+    std::this_thread::sleep_for(std::chrono::milliseconds(3));
   }
 }
