@@ -3,8 +3,15 @@ project(RaveCylinder VERSION 0.1.0 LANGUAGES C CXX)
 configure_file(RaveCylinder.h.in RaveCylinder.h)
 
 SET(SOURCES
-    Color.h ColorUtils.h ColorUtils.cpp DDPOutput.h DDPOutput.cpp
-    Pixel.h PixelMath.h PixelMath.cpp PixelUtils.h UDPClient.h main.cpp
+    Color.h 
+    ColorPalettes.h ColorPalettes.cpp
+    ColorUtils.h ColorUtils.cpp 
+    DDPOutput.h DDPOutput.cpp
+    Pixel.h 
+    PixelMath.h PixelMath.cpp 
+    PixelUtils.h 
+    UDPClient.h 
+    main.cpp
    )
 
 add_executable(RaveCylinder ${SOURCES})

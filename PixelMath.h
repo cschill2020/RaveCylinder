@@ -84,6 +84,44 @@ static void nscale8x3_video(uint8_t &r, uint8_t &g, uint8_t &b, uint8_t scale) {
   b = (b == 0) ? 0 : (((int)b * (int)(scale)) >> 8) + nonzeroscale;
 }
 
+// Random number generation;
+/// Multiplier value for pseudo-random number generation
+#define FASTLED_RAND16_2053  ((uint16_t)(2053))
+/// Increment value for pseudo-random number generation
+#define FASTLED_RAND16_13849 ((uint16_t)(13849))
+/// Multiplies a value by the pseudo-random multiplier
+#define APPLY_FASTLED_RAND16_2053(x) (x * FASTLED_RAND16_2053)
+/// Seed for the random number generator functions
+static uint16_t rand16seed = 1337;
+
+static uint8_t random8()
+{
+    rand16seed = APPLY_FASTLED_RAND16_2053(rand16seed) + FASTLED_RAND16_13849;
+    // return the sum of the high and low bytes, for better
+    //  mixing and non-sequential correlation
+    return (uint8_t)(((uint8_t)(rand16seed & 0xFF)) +
+                     ((uint8_t)(rand16seed >> 8)));
+}
+
+/// Generate an 8-bit random number between 0 and lim
+/// @param lim the upper bound for the result, exclusive
+static uint8_t random8(uint8_t lim)
+{
+    uint8_t r = random8();
+    r = (r*lim) >> 8;
+    return r;
+}
+
+/// Generate an 8-bit random number in the given range
+/// @param min the lower bound for the random number, inclusive
+/// @param lim the upper bound for the random number, exclusive
+static uint8_t random8(uint8_t min, uint8_t lim)
+{
+    uint8_t delta = lim - min;
+    uint8_t r = random8(delta) + min;
+    return r;
+}
+
 /// Blend a variable proportion (0-255) of one byte to another.
 /// @param a the starting byte value
 /// @param b the byte value to blend toward

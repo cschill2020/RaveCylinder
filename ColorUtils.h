@@ -422,7 +422,7 @@ void blur1d(CRGB *leds, uint16_t numLeds, fract8 blur_amount);
 /// @param width the width of the matrix
 /// @param height the height of the matrix
 /// @param blur_amount the amount of blur to apply
-//void blur2d(CRGB *leds, uint8_t width, uint8_t height, fract8 blur_amount);
+// void blur2d(CRGB *leds, uint8_t width, uint8_t height, fract8 blur_amount);
 
 /// Perform a blur1d() on every row of a rectangular matrix
 /// @see blur1d()
@@ -430,11 +430,12 @@ void blur1d(CRGB *leds, uint16_t numLeds, fract8 blur_amount);
 /// @param width the width of the matrix
 /// @param height the height of the matrix
 /// @param blur_amount the amount of blur to apply
-//void blurRows(CRGB *leds, uint8_t width, uint8_t height, fract8 blur_amount);
+// void blurRows(CRGB *leds, uint8_t width, uint8_t height, fract8 blur_amount);
 
 /// Perform a blur1d() on every column of a rectangular matrix
 /// @copydetails blurRows()
-//void blurColumns(CRGB *leds, uint8_t width, uint8_t height, fract8 blur_amount);
+// void blurColumns(CRGB *leds, uint8_t width, uint8_t height, fract8
+// blur_amount);
 
 /// @} ColorBlurs
 
@@ -913,6 +914,20 @@ public:
   CRGBPalette16 &operator=(const CHSV rhs[16]) {
     for (uint8_t i = 0; i < 16; ++i) {
       entries[i] = rhs[i]; // implicit HSV-to-RGB conversion
+    }
+    return *this;
+  }
+
+  /// Create palette from palette stored in PROGMEM
+  CRGBPalette16(const TProgmemRGBPalette16 &rhs) {
+    for (uint8_t i = 0; i < 16; ++i) {
+      entries[i] = FL_PGM_READ_DWORD_NEAR(rhs + i);
+    }
+  }
+  /// @copydoc CRGBPalette16(const TProgmemRGBPalette16&)
+  CRGBPalette16 &operator=(const TProgmemRGBPalette16 &rhs) {
+    for (uint8_t i = 0; i < 16; ++i) {
+      entries[i] = FL_PGM_READ_DWORD_NEAR(rhs + i);
     }
     return *this;
   }
@@ -1960,13 +1975,11 @@ void nblendPaletteTowardPalette(CRGBPalette16 &currentPalette,
 /// `DEFINE_GRADIENT_PALETTE` macro, this is taken of automatically.
 ///
 #define DEFINE_GRADIENT_PALETTE(X)                                             \
-  FL_ALIGN_PROGMEM                                                             \
-  extern const TProgmemRGBGradientPalette_byte X[] FL_PROGMEM =
+  extern const TProgmemRGBGradientPalette_byte X[] =
 
 /// Forward-declaration macro for DEFINE_GRADIENT_PALETTE(X)
 #define DECLARE_GRADIENT_PALETTE(X)                                            \
-  FL_ALIGN_PROGMEM                                                             \
-  extern const TProgmemRGBGradientPalette_byte X[] FL_PROGMEM
+  extern const TProgmemRGBGradientPalette_byte X[]
 
 /// @} ColorPalettes
 
