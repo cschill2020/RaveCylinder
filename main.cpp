@@ -3,70 +3,25 @@
 #include "Pixel.h"
 #include "PixelUtils.h"
 #include "UDPClient.h"
-#include <chrono>
 #include <iostream>
 #include <thread>
 
 #define DDP_PORT "4048"
+#define NUM_PIXELS 100
 
 using namespace std::literals;
-using clock_type = std::chrono::high_resolution_clock;
 
 using namespace ravecylinder;
 
 CRGB pixels[NUM_PIXELS];
 
-void Blink(const UDPClient &udp_client) {
-  pixels[0] = CRGB(CRGB::Red);
-  pixels[1] = CRGB(CRGB::Green);
-  pixels[2] = CRGB(CRGB::Blue);
-
-  //DDPOutput output1;
-  //output1.GenerateFrame(pixels, 0);
-  //udp_client.SendTo(output1.GetBytes());
-  std::this_thread::sleep_for(std::chrono::milliseconds(40));
-
-  pixels[0] = CRGB(CRGB::Black);
-  pixels[1] = CRGB(CRGB::Black);
-  pixels[2] = CRGB(CRGB::Black);
-
-  //DDPOutput output2;
-  //output2.GenerateFrame(pixels, 0);
-  //udp_client.SendTo(output2.GetBytes());
-  //std::this_thread::sleep_for(std::chrono::milliseconds(40));
-}
-
-void TestHue(const UDPClient &udp_client, uint8_t hue) {
-  for (int i = 0; i < NUM_PIXELS; ++i) {
-    pixels[i] = CHSV(hue + (i * 10), 255, 255);
-    //DDPOutput output2;
-    //output2.GenerateFrame(pixels, 0);
-    //udp_client.SendTo(output2.GetBytes());
-  }
-}
-
 uint8_t pattern_counter = 0;
-void nextPattern() { pattern_counter = (pattern_counter + 1) % 3; }
+void nextPattern() {
+  std::cout << "pattern_counter: " << unsigned(pattern_counter) << std::endl;
+  pattern_counter = (pattern_counter + 1) % 3;
+}
 
 //------- Put your patterns below -------//
-
-void movingDots() {
-
-  uint16_t posBeat = beatsin16(30, 0, NUM_PIXELS - 1, 0, 0);
-  uint16_t posBeat2 = beatsin16(60, 0, NUM_PIXELS - 1, 0, 0);
-
-  uint16_t posBeat3 = beatsin16(30, 0, NUM_PIXELS - 1, 0, 32767);
-  uint16_t posBeat4 = beatsin16(60, 0, NUM_PIXELS - 1, 0, 32767);
-
-  // Wave for LED color
-  uint8_t colBeat = beatsin8(45, 0, 255, 0, 0);
-
-  pixels[(posBeat + posBeat2) / 2] = CHSV(colBeat, 255, 255);
-  pixels[(posBeat3 + posBeat4) / 2] = CHSV(colBeat, 255, 255);
-
-  fadeToBlackBy(pixels, NUM_PIXELS, 50);
-}
-
 void rainbowBeat() {
 
   uint16_t beatA = beatsin16(30, 0, 255);
@@ -74,59 +29,48 @@ void rainbowBeat() {
   fill_rainbow(pixels, NUM_PIXELS, (beatA + beatB) / 2, 8);
 }
 
-void redWhiteBlue() {
-
-  uint16_t sinBeat = beatsin16(30, 0, NUM_PIXELS - 1, 0, 0);
-  uint16_t sinBeat2 = beatsin16(30, 0, NUM_PIXELS - 1, 0, 21845);
-  uint16_t sinBeat3 = beatsin16(30, 0, NUM_PIXELS - 1, 0, 43690);
-
-  pixels[sinBeat] = CRGB::Blue;
-  pixels[sinBeat2] = CRGB::Red;
-  pixels[sinBeat3] = CRGB::White;
-
+void testSin8() {
+  uint16_t pos1 = beatsin16(20, 0, NUM_PIXELS - 1, 0, 0);
+  uint16_t pos2 = beatsin16(20, 0, NUM_PIXELS - 1, 0, 32767);
+  pixels[pos1] += CRGB::Blue;
+  pixels[pos2] += CRGB::Red;
   fadeToBlackBy(pixels, NUM_PIXELS, 10);
 }
 
-void testSin8() {
-  uint16_t sinBeat = beatsin16(30, 0, NUM_PIXELS - 1, 0, 0);
-  pixels[sinBeat] = CRGB::Blue;
-  fadeToBlackBy(pixels, NUM_PIXELS, 100);
+uint8_t gHue = 0;
+void sinelon() {
+  // a colored dot sweeping back and forth, with fading trails
+  fadeToBlackBy(pixels, NUM_PIXELS, 10);
+  int pos = beatsin16(13, 0, NUM_PIXELS - 1);
+  pixels[pos] += CHSV(gHue, 255, 192);
 }
 
 int main() {
   UDPClient client;
   client.OpenConnection("ravecylinder.local", DDP_PORT);
 
-  auto delay_time = 5s;
-  auto target_time = clock_type::now() + delay_time;
-  int nloops = 0;
   while (true) {
     switch (pattern_counter) {
     case 0:
-      //testSin8();
-      movingDots();
+      testSin8();
       break;
     case 1:
       rainbowBeat();
       break;
     case 2:
-      redWhiteBlue();
+      sinelon();
       break;
     }
+    EVERY_N_MILLIS(20) { ++gHue; }
+    EVERY_N_SECONDS(5) { nextPattern(); }
 
-    if (clock_type::now() > (target_time)) {
-      nextPattern();
-      target_time += delay_time;
-    }
-    // Basically FastLED.show();
+    // TDOD: Separate the frame generation and display into parallel threads
+    // using a TaskScheduler.
     DDPOutput output;
-    std::vector<Packet> packets = output.GenerateFrame(pixels);
-    for (auto& packet : packets) {
-      //client.SendTo(packet.GetBytes());
-      for (int i = 0; i < 10; ++i) {
-        std::cout << unsigned( packet.GetBytes()[i]) << std::endl;
-      }
+    std::vector<Packet> packets = output.GenerateFrame(pixels, NUM_PIXELS);
+    for (auto &packet : packets) {
+      client.SendTo(packet.GetBytes());
     }
-    std::this_thread::sleep_for(std::chrono::milliseconds(25));
+    std::this_thread::sleep_for(std::chrono::milliseconds(3));
   }
 }

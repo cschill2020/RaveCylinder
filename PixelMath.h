@@ -8,11 +8,12 @@
 #include <stdint.h>
 
 namespace ravecylinder {
-using std::chrono::high_resolution_clock;
+using clock_type = std::chrono::high_resolution_clock;
 typedef uint16_t accum88;
 typedef uint16_t fract16;
 
-uint32_t get_millisecond_timer(); 
+
+uint32_t get_millisecond_timer();
 
 #define GET_MILLIS get_millisecond_timer
 
@@ -375,6 +376,110 @@ static uint8_t beatsin8(accum88 beats_per_minute, uint8_t lowest = 0,
   uint8_t result = lowest + scaledbeat;
   return result;
 }
+
+/// Return the current seconds since boot in a 16-bit value.  Used as part of the
+/// "every N time-periods" mechanism
+static uint16_t seconds16()
+{
+    uint32_t ms = GET_MILLIS();
+    uint16_t s16;
+    s16 = ms / 1000;
+    return s16;
+}
+
+/// Return the current minutes since boot in a 16-bit value.  Used as part of the
+/// "every N time-periods" mechanism
+static uint16_t minutes16()
+{
+    uint32_t ms = GET_MILLIS();
+    uint16_t m16;
+    m16 = (ms / (60000L)) & 0xFFFF;
+    return m16;
+}
+
+/// Return the current hours since boot in an 8-bit value.  Used as part of the
+/// "every N time-periods" mechanism
+static uint8_t hours8()
+{
+    uint32_t ms = GET_MILLIS();
+    uint8_t h8;
+    h8 = (ms / (3600000L)) & 0xFF;
+    return h8;
+}
+
+// Under C++11 rules, we would be allowed to use not-external
+// -linkage-type symbols as template arguments,
+// e.g., LIB8STATIC seconds16, and we'd be able to use these
+// templates as shown below.
+// However, under C++03 rules, we cannot do that, and thus we
+// have to resort to the preprocessor to 'instantiate' 'templates',
+// as handled above.
+template<typename timeType,timeType (*timeGetter)()>
+class CEveryNTimePeriods {
+public:
+    timeType mPrevTrigger;
+    timeType mPeriod;
+
+    CEveryNTimePeriods() { reset(); mPeriod = 1; };
+    CEveryNTimePeriods(timeType period) { reset(); setPeriod(period); };
+    void setPeriod( timeType period) { mPeriod = period; };
+    timeType getTime() { return (timeType)(timeGetter()); };
+    timeType getPeriod() { return mPeriod; };
+    timeType getElapsed() { return getTime() - mPrevTrigger; }
+    timeType getRemaining() { return mPeriod - getElapsed(); }
+    timeType getLastTriggerTime() { return mPrevTrigger; }
+    bool ready() {
+        bool isReady = (getElapsed() >= mPeriod);
+        if( isReady ) { reset(); }
+        return isReady;
+    }
+    void reset() { mPrevTrigger = getTime(); };
+    void trigger() { mPrevTrigger = getTime() - mPeriod; };
+
+    operator bool() { return ready(); }
+};
+typedef CEveryNTimePeriods<uint16_t,seconds16> CEveryNSeconds;
+typedef CEveryNTimePeriods<uint32_t,get_millisecond_timer> CEveryNMillis;
+typedef CEveryNTimePeriods<uint16_t,minutes16> CEveryNMinutes;
+typedef CEveryNTimePeriods<uint8_t,hours8> CEveryNHours;
+
+/// @name "EVERY_N_TIME" Macros
+/// Check whether to excecute a block of code every N amount of time.
+/// These are useful for limiting how often code runs. For example,
+/// you can use ::fill_rainbow() to fill a strip of LEDs with color,
+/// combined with an ::EVERY_N_MILLIS block to limit how fast the colors
+/// change:
+///   @code{.cpp}
+///   static uint8_t hue = 0;
+///   fill_rainbow(leds, NUM_LEDS, hue);
+///   EVERY_N_MILLIS(20) { hue++; }  // advances hue every 20 milliseconds
+///   @endcode
+/// Note that in order for these to be accurate, the EVERY_N block must
+/// be evaluated at a regular basis.  
+/// @{
+
+/// @cond
+#define CONCAT_HELPER( x, y ) x##y
+#define CONCAT_MACRO( x, y ) CONCAT_HELPER( x, y )
+/// @endcond
+
+
+/// Checks whether to execute a block of code every N milliseconds
+/// @see GET_MILLIS
+#define EVERY_N_MILLIS(N) EVERY_N_MILLIS_I(CONCAT_MACRO(PER, __COUNTER__ ),N)
+
+/// Checks whether to execute a block of code every N milliseconds, using a custom instance name
+/// @copydetails EVERY_N_MILLIS
+#define EVERY_N_MILLIS_I(NAME,N) static CEveryNMillis NAME(N); if( NAME )
+
+/// Checks whether to execute a block of code every N seconds
+/// @see seconds16()
+#define EVERY_N_SECONDS(N) EVERY_N_SECONDS_I(CONCAT_MACRO(PER, __COUNTER__ ),N)
+
+/// Checks whether to execute a block of code every N seconds, using a custom instance name
+/// @copydetails EVERY_N_SECONDS
+#define EVERY_N_SECONDS_I(NAME,N) static CEveryNSeconds NAME(N); if( NAME )
+
 } // namespace ravecylinder
 
 #endif

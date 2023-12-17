@@ -41,8 +41,6 @@ void DDPOutput::SetDDPPacketHeader(std::vector<uint8_t> *packet,
                                    uint32_t offset,
                                    uint16_t num_pixels_in_packet,
                                    bool push_frame = false) {
-  std::cout << "uoffset = " << offset << std::endl;
-  std::cout << "ulen = " << num_pixels_in_packet << std::endl;
   // DDP Header is 10 bytes
   // Byte 0: Config Flags
   if (push_frame) {
@@ -67,17 +65,18 @@ void DDPOutput::SetDDPPacketHeader(std::vector<uint8_t> *packet,
   packet->push_back((num_pixels_in_packet * NUM_LED_PER_PIXEL) & 0xFF);
 }
 
-std::vector<Packet> DDPOutput::GenerateFrame(const CRGB *pixels) {
+std::vector<Packet> DDPOutput::GenerateFrame(const CRGB *pixels,
+                                             int num_pixels) {
   // Number of pixels in the last packet;
-  uint16_t rem_pixels = NUM_PIXELS % DDP_MAX_PIXELS_PER_PACKET;
+  uint16_t rem_pixels = num_pixels % DDP_MAX_PIXELS_PER_PACKET;
   // Total number of packets;
-  uint16_t tot_packets = NUM_PIXELS / DDP_MAX_PIXELS_PER_PACKET;
+  uint16_t tot_packets = num_pixels / DDP_MAX_PIXELS_PER_PACKET;
   if (rem_pixels != 0) {
     tot_packets += 1;
   }
   std::vector<Packet> packets;
   int packet_ctr = 0;
-  for (int i = 0; i < NUM_PIXELS; ++i) {
+  for (int i = 0; i < num_pixels; ++i) {
     // Create a new packet.
     if (i % DDP_MAX_PIXELS_PER_PACKET == 0) {
       Packet packet;

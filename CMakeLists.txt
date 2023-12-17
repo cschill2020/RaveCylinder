@@ -4,7 +4,7 @@ configure_file(RaveCylinder.h.in RaveCylinder.h)
 
 SET(SOURCES
     Color.h ColorUtils.h ColorUtils.cpp DDPOutput.h DDPOutput.cpp
-    Pixel.h PixelMath.h PixelMath.cpp PixelUtils.h UDPClient.h  main.cpp
+    Pixel.h PixelMath.h PixelMath.cpp PixelUtils.h UDPClient.h main.cpp
    )
 
 add_executable(RaveCylinder ${SOURCES})

@@ -11,8 +11,6 @@
 
 namespace ravecylinder {
 
-#define NUM_PIXELS 1000
-
 struct Packet {
   std::vector<uint8_t> header;
   std::vector<uint8_t> pixel_data;
@@ -28,7 +26,7 @@ public:
   DDPOutput();
   ~DDPOutput() {}
 
-  std::vector<Packet> GenerateFrame(const CRGB *pixels);
+  std::vector<Packet> GenerateFrame(const CRGB *pixels, int num_pixels);
 
 private:
   void SetDDPPacketHeader(std::vector<uint8_t> *packet, uint32_t offset,
