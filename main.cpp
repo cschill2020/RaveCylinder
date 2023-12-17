@@ -25,7 +25,7 @@ void nextPattern() {
   pattern_counter = (pattern_counter + 1) % 5;
 }
 
-//------- Put your patterns below -------//
+//------- Test sequences below -------//
 void rainbowBeat() {
 
   uint16_t beatA = beatsin16(30, 0, 255);
@@ -151,9 +151,20 @@ void FillLEDsFromPaletteColors(uint8_t colorIndex) {
 }
 
 int main() {
+  // Setup the connection to the controller.  The controller is 
+  // receiving simple UDP packets on DDP_PORT.  It is expecting
+  // packets formatted according to the ddp protocol defined:
+  // http://www.3waylabs.com/ddp/
   UDPClient client;
   client.OpenConnection("ravecylinder.local", DDP_PORT);
 
+  // This is basically loop() in arduino code.  Implement 
+  // a few test sequences to cycle through.  Shows off some
+  // timing macros like EVERY_N_ and cycling through color 
+  // palettes.
+  // Each cycle of the loop fills the global CRGB matrix 
+  // with colors for NUM_PIXELS.  Each frame is then sent
+  // to the controller using DDP/UDP push.
   while (true) {
     ChangePalettePeriodically();
     switch (pattern_counter) {
@@ -187,11 +198,16 @@ int main() {
 
     // TDOD: Separate the frame generation and display into parallel threads
     // using a TaskScheduler.
+    // DDPOutput converts the pixel matrix into the set of packets processed 
+    // by the controller.
     DDPOutput output;
     std::vector<Packet> packets = output.GenerateFrame(pixels, NUM_PIXELS);
     for (auto &packet : packets) {
+      // Send the packets.
       client.SendTo(packet.GetBytes());
     }
+    // A short delay is helpful to ensure the controller doesn't get 
+    // overwhelmed with packets.
     std::this_thread::sleep_for(std::chrono::milliseconds(3));
   }
 }

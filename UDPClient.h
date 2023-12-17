@@ -54,12 +54,7 @@ public:
         perror("socket");
         continue;
       }
-      // if (connect(socket_, server_address_->ai_addr,
-      //             server_address_->ai_addrlen) == -1) {
-      //   close(socket_);
-      //   perror("client: connect");
-      //   continue;
-      // }
+
       return true;
     }
 
