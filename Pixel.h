@@ -454,7 +454,7 @@ struct CRGB {
       ret.blue = b;
       return ret;
     }
-  #endif
+  #endif*/
 
     /// Get the "luma" of a CRGB object. In other words, roughly how much
     /// light the CRGB pixel is putting out (from 0 to 255).
@@ -462,24 +462,18 @@ struct CRGB {
       // Y' = 0.2126 R' + 0.7152 G' + 0.0722 B'
       //      54            183       18 (!)
 
-      uint8_t luma = scale8_LEAVING_R1_DIRTY(r, 54) +
-                     scale8_LEAVING_R1_DIRTY(g, 183) +
-                     scale8_LEAVING_R1_DIRTY(b, 18);
-      cleanup_R1();
+      uint8_t luma = scale8(r, 54) +
+                     scale8(g, 183) +
+                     scale8(b, 18);
       return luma;
     }
 
     /// Get the average of the R, G, and B values
     inline uint8_t getAverageLight() const {
-  #if FASTLED_SCALE8_FIXED == 1
       const uint8_t eightyfive = 85;
-  #else
-      const uint8_t eightyfive = 86;
-  #endif
-      uint8_t avg = scale8_LEAVING_R1_DIRTY(r, eightyfive) +
-                    scale8_LEAVING_R1_DIRTY(g, eightyfive) +
-                    scale8_LEAVING_R1_DIRTY(b, eightyfive);
-      cleanup_R1();
+      uint8_t avg = scale8(r, eightyfive) +
+                    scale8(g, eightyfive) +
+                    scale8(b, eightyfive);
       return avg;
     }
 
@@ -504,7 +498,7 @@ struct CRGB {
       }
     }
 
-    /// Return a new CRGB object after performing a linear interpolation between
+    /*/// Return a new CRGB object after performing a linear interpolation between
     /// this object and the passed in object
     inline CRGB lerp8(const CRGB &other, fract8 frac) const {
       CRGB ret;
@@ -832,14 +826,14 @@ inline __attribute__((always_inline)) bool operator<=(const CRGB &lhs,
   return sl <= sr;
 }
 
-/*/// @copydoc CRGB::operator+=
+/// @copydoc CRGB::operator+=
 __attribute__((always_inline)) inline CRGB operator+(const CRGB &p1,
                                                      const CRGB &p2) {
   return CRGB(qadd8(p1.red, p2.red), qadd8(p1.green, p2.green), qadd8(p1.blue,
 p2.blue));
 }
 
-/// @copydoc CRGB::operator-=
+/*/// @copydoc CRGB::operator-=
 __attribute__((always_inline)) inline CRGB operator-(const CRGB &p1,
                                                      const CRGB &p2) {
   return CRGB(qsub8(p1.red, p2.red), qsub8(p1.green, p2.green), qsub8(p1.blue,

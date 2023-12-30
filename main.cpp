@@ -6,15 +6,13 @@
 #include "UDPClient.h"
 #include <iostream>
 #include <thread>
+#include "WLED.h"
 
 #define DDP_PORT "4048"
-#define NUM_PIXELS 20
 
 using namespace std::literals;
 
 using namespace ravecylinder;
-
-CRGB pixels[NUM_PIXELS];
 
 CRGBPalette16 currentPalette;
 TBlendType currentBlending; // NOBLEND or LINEARBLEND
@@ -30,29 +28,29 @@ void rainbowBeat() {
 
   uint16_t beatA = beatsin16(30, 0, 255);
   uint16_t beatB = beatsin16(20, 0, 255);
-  fill_rainbow(pixels, NUM_PIXELS, (beatA + beatB) / 2, 8);
+  fill_rainbow(_pixels, NUM_PIXELS, (beatA + beatB) / 2, 8);
 }
 
 void testSin8() {
   uint16_t pos1 = beatsin16(20, 0, NUM_PIXELS - 1, 0, 0);
   uint16_t pos2 = beatsin16(20, 0, NUM_PIXELS - 1, 0, 32767);
-  pixels[pos1] += CRGB::Blue;
-  pixels[pos2] += CRGB::Red;
-  fadeToBlackBy(pixels, NUM_PIXELS, 10);
+  _pixels[pos1] += CRGB::Blue;
+  _pixels[pos2] += CRGB::Red;
+  fadeToBlackBy(_pixels, NUM_PIXELS, 10);
 }
 
 void sinelon(uint8_t hue) {
   // a colored dot sweeping back and forth, with fading trails
-  fadeToBlackBy(pixels, NUM_PIXELS, 10);
+  fadeToBlackBy(_pixels, NUM_PIXELS, 10);
   int pos = beatsin16(30, 0, NUM_PIXELS - 1);
-  pixels[pos] += CHSV(hue, 255, 192);
+  _pixels[pos] += CHSV(hue, 255, 192);
 }
 
 void sinelonWithPalette(uint8_t color_index) {
   // a colored dot sweeping back and forth, with fading trails
-  fadeToBlackBy(pixels, NUM_PIXELS, 10);
+  fadeToBlackBy(_pixels, NUM_PIXELS, 10);
   int pos = beatsin16(30, 0, NUM_PIXELS - 1);
-  pixels[pos] = ColorFromPalette(currentPalette, color_index, 100,
+  _pixels[pos] = ColorFromPalette(currentPalette, color_index, 100,
                                          currentBlending);
 }
 
@@ -145,7 +143,7 @@ void FillLEDsFromPaletteColors(uint8_t colorIndex) {
   for (int i = 0; i < NUM_PIXELS; ++i) {
     const auto &color = ColorFromPalette(currentPalette, colorIndex, brightness,
                                          currentBlending);
-    pixels[i] = color;
+    _pixels[i] = color;
     colorIndex += 3;
   }
 }
@@ -201,7 +199,7 @@ int main() {
     // DDPOutput converts the pixel matrix into the set of packets processed 
     // by the controller.
     DDPOutput output;
-    std::vector<Packet> packets = output.GenerateFrame(pixels, NUM_PIXELS);
+    std::vector<Packet> packets = output.GenerateFrame(_pixels, NUM_PIXELS);
     for (auto &packet : packets) {
       // Send the packets.
       client.SendTo(packet.GetBytes());

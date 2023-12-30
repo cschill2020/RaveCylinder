@@ -11,6 +11,13 @@ SET(SOURCES
     PixelMath.h PixelMath.cpp 
     PixelUtils.h 
     UDPClient.h 
+    WLED_colors.cpp
+    WLED_const.h
+    WLED_fcn_declare.h
+    WLED_FX_2Dfcn.cpp WLED_FX_fcn.cpp WLED_FX.cpp WLED_FX.h  
+    WLED_noise.cpp
+    WLED_palettes.h
+    WLED.cpp WLED.h 
     main.cpp
    )
 
