@@ -2,6 +2,7 @@
 #define WLED_FCN_DECLARE_H
 
 #include <stdint.h>
+#include <math.h>
 
 namespace ravecylinder {
 inline uint8_t pgm_read_byte_near(uint8_t *p) { return *p; }
@@ -62,7 +63,6 @@ int16_t inoise16_raw(uint32_t x, uint32_t y, uint32_t z);
 int16_t inoise16_raw(uint32_t x, uint32_t y);
 int16_t inoise16_raw(uint32_t x);
 
-#include <math.h>
 #define sin_t sin
 #define cos_t cos
 #define tan_t tan

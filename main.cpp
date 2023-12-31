@@ -158,6 +158,17 @@ void FillLEDsFromPaletteColors(uint8_t colorIndex) {
   }
 }
 
+int startHTTPServer () {
+    
+    hello_world_resource hwr;
+    webserver ws = create_webserver(8088);
+    
+    ws.register_resource("/hello", &hwr);
+    ws.start(true);
+    
+    return 0;
+}
+
 int main() {
   // Setup the connection to the controller.  The controller is 
   // receiving simple UDP packets on DDP_PORT.  It is expecting
@@ -167,10 +178,8 @@ int main() {
   client.OpenConnection("ravecylinder.local", DDP_PORT);
 
   // initiate web server
-  webserver ws = create_webserver(8088);
-  hello_world_resource hwr;
-  ws.register_resource("/hello", &hwr);
-  ws.start(true);  
+  std::thread server_thread(startHTTPServer);
+  server_thread.detach();
 
   // This is basically loop() in arduino code.  Implement 
   // a few test sequences to cycle through.  Shows off some

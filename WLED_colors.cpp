@@ -1,5 +1,6 @@
 #include "WLED.h"
 #include "WLED_FX.h"
+#include "WLED_fcn_declare.h"
 
 namespace ravecylinder {
 /*
