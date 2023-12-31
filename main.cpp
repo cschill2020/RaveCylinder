@@ -8,11 +8,14 @@
 #include <thread>
 #include "WLED.h"
 
+#include <httpserver.hpp>
+
 #define DDP_PORT "4048"
 
 using namespace std::literals;
-
 using namespace ravecylinder;
+using namespace httpserver;
+
 
 CRGBPalette16 currentPalette;
 TBlendType currentBlending; // NOBLEND or LINEARBLEND
@@ -22,6 +25,13 @@ void nextPattern() {
   std::cout << "pattern_counter: " << unsigned(pattern_counter) << std::endl;
   pattern_counter = (pattern_counter + 1) % 5;
 }
+
+class hello_world_resource : public http_resource {
+  public:
+      std::shared_ptr<http_response> render(const http_request&) {
+          return std::shared_ptr<http_response>(new string_response("Hello, World!"));
+      }
+};
 
 //------- Test sequences below -------//
 void rainbowBeat() {
@@ -155,6 +165,12 @@ int main() {
   // http://www.3waylabs.com/ddp/
   UDPClient client;
   client.OpenConnection("ravecylinder.local", DDP_PORT);
+
+  // initiate web server
+  webserver ws = create_webserver(8088);
+  hello_world_resource hwr;
+  ws.register_resource("/hello", &hwr);
+  ws.start(true);  
 
   // This is basically loop() in arduino code.  Implement 
   // a few test sequences to cycle through.  Shows off some

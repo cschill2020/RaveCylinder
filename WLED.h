@@ -42,9 +42,6 @@ typedef uint8_t byte;
 #define pgm_read_word(x) (*((const uint16_t *)(x)))
 #define pgm_read_dword(x) (*((const uint32_t *)(x)))
 
-#define max(a, b) std::max(a, b)
-#define min(a, b) std::min(a, b)
-
 constexpr float HALF_PI = 3.14159f / 2.0f;
 
 extern bool stateChanged;
@@ -75,7 +72,7 @@ extern uint16_t ledMaps;
 extern byte lastRandomIndex;
 extern char* ledmapNames[];
 
-#define map(a1, a2, b1, b2, s) (b1 + (s - a1) * (b2 - b1) / (a2 - a1))
+#define wled_map(a1, a2, b1, b2, s) (b1 + (s - a1) * (b2 - b1) / (a2 - a1))
 
 void colorHStoRGB(uint16_t hue, byte sat, byte* rgb);
 uint32_t gamma32(uint32_t);

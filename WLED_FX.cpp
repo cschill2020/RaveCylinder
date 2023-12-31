@@ -522,7 +522,7 @@ uint16_t running_base(bool saw, bool dual=false) {
       {
         a = 192 + a*8;
       } else {
-        a = map(a,16,255,64,192);
+        a = wled_map(a,16,255,64,192);
       }
       a = 255 - a;
     }
@@ -580,7 +580,7 @@ uint16_t mode_twinkle(void) {
   uint32_t it = strip().now / cycleTime;
   if (it != SEGENV.step)
   {
-    uint16_t maxOn = map(SEGMENT.intensity, 0, 255, 1, SEGLEN); // make sure at least one LED is on
+    uint16_t maxOn = wled_map(SEGMENT.intensity, 0, 255, 1, SEGLEN); // make sure at least one LED is on
     if (SEGENV.aux0 >= maxOn)
     {
       SEGENV.aux0 = 0;
@@ -713,7 +713,7 @@ uint16_t mode_hyper_sparkle(void) {
 
   if (strip().now - SEGENV.aux0 > SEGENV.step) {
     if (random8((255-SEGMENT.intensity) >> 4) == 0) {
-      for (int i = 0; i < max(1, SEGLEN/3); i++) {
+      for (int i = 0; i < std::max(1, SEGLEN/3); i++) {
         SEGMENT.setPixelColor(random16(SEGLEN), SEGCOLOR(1));
       }
     }
@@ -1220,7 +1220,7 @@ uint16_t mode_fireworks() {
   if (valid1) { if (SEGMENT.is2D()) SEGMENT.setPixelColorXY(x, y, sv1); else SEGMENT.setPixelColor(SEGENV.aux0, sv1); } // restore spark color after blur
   if (valid2) { if (SEGMENT.is2D()) SEGMENT.setPixelColorXY(x, y, sv2); else SEGMENT.setPixelColor(SEGENV.aux1, sv2); } // restore old spark color after blur
 
-  for (int i=0; i<max(1, width/20); i++) {
+  for (int i=0; i<std::max(1, width/20); i++) {
     if (random8(129 - (SEGMENT.intensity >> 1)) == 0) {
       uint16_t index = random16(width*height);
       x = index % width;
@@ -1284,12 +1284,12 @@ uint16_t mode_fire_flicker(void) {
   uint8_t r = (SEGCOLOR(0) >> 16);
   uint8_t g = (SEGCOLOR(0) >>  8);
   uint8_t b = (SEGCOLOR(0)      );
-  uint8_t lum = (SEGMENT.palette == 0) ? max(w, max(r, max(g, b))) : 255;
+  uint8_t lum = (SEGMENT.palette == 0) ? std::max(w, std::max(r, std::max(g, b))) : 255;
   lum /= (((256-SEGMENT.intensity)/16)+1);
   for (int i = 0; i < SEGLEN; i++) {
     uint8_t flicker = random8(lum);
     if (SEGMENT.palette == 0) {
-      SEGMENT.setPixelColor(i, max(r - flicker, 0), max(g - flicker, 0), max(b - flicker, 0), max(w - flicker, 0));
+      SEGMENT.setPixelColor(i, std::max(r - flicker, 0), std::max(g - flicker, 0), std::max(b - flicker, 0), std::max(w - flicker, 0));
     } else {
       SEGMENT.setPixelColor(i, SEGMENT.color_from_palette(i, true, PALETTE_SOLID_WRAP, 0, 255 - flicker));
     }
@@ -1319,7 +1319,7 @@ uint16_t gradient_base(bool loading) {
     if (loading) {
       val = abs(((i>pp) ? p2:pp) - i);
     } else {
-      val = min(abs(pp-i),min(abs(p1-i),abs(p2-i)));
+      val = std::min(abs(pp-i), std::min(abs(p1-i),abs(p2-i)));
     }
     val = (brd > val) ? (val * 255) / brd : 255;
     SEGMENT.setPixelColor(i, color_blend(SEGCOLOR(0), SEGMENT.color_from_palette(i, true, PALETTE_SOLID_WRAP, 1), val));
@@ -1351,7 +1351,7 @@ static const char _data_FX_MODE_LOADING[] = "Loading@!,Fade;!,!;!;;ix=16";
 uint16_t police_base(uint32_t color1, uint32_t color2) {
   if (SEGLEN == 1) return mode_static();
   uint16_t delay = 1 + (FRAMETIME<<3) / SEGLEN;  // longer segments should change faster
-  uint32_t it = strip().now / map(SEGMENT.speed, 0, 255, (delay<<4), delay);
+  uint32_t it = strip().now / wled_map(SEGMENT.speed, 0, 255, (delay<<4), delay);
   uint16_t offset = it % SEGLEN;
 
   uint16_t width = ((SEGLEN*(SEGMENT.intensity+1))>>9); //max width is half the strip
@@ -1562,7 +1562,7 @@ uint16_t mode_icu(void) {
 
   if (!SEGMENT.check2) SEGMENT.fill(SEGCOLOR(1));
 
-  uint8_t pindex = map(dest, 0, SEGLEN-SEGLEN/space, 0, 255);
+  uint8_t pindex = wled_map(dest, 0, SEGLEN-SEGLEN/space, 0, 255);
   uint32_t col = SEGMENT.color_from_palette(pindex, false, false, 0);
 
   SEGMENT.setPixelColor(dest, col);
@@ -1976,7 +1976,7 @@ uint16_t mode_fire_2012() {
   struct virtualStrip {
     static void runStrip(uint16_t stripNr, uint8_t* heat, uint32_t it) {
 
-      const uint8_t ignition = max(3,SEGLEN/10);  // ignition area: 10% of segment length or minimum 3 pixels
+      const uint8_t ignition = std::max(3,SEGLEN/10);  // ignition area: 10% of segment length or minimum 3 pixels
 
       // Step 1.  Cool down every cell a little
       for (int i = 0; i < SEGLEN; i++) {
@@ -2316,7 +2316,7 @@ uint16_t mode_meteor_smooth() {
   uint8_t* trail = SEGENV.data;
 
   const unsigned meteorSize= 1+ SEGLEN / 20; // 5%
-  uint16_t in = map((SEGENV.step >> 6 & 0xFF), 0, 255, 0, SEGLEN -1);
+  uint16_t in = wled_map((SEGENV.step >> 6 & 0xFF), 0, 255, 0, SEGLEN -1);
 
   const int max = SEGMENT.palette==5 || !SEGMENT.check1 ? 240 : 255;
   // fade all leds to colors[1] in LEDs one step
@@ -2396,7 +2396,7 @@ typedef struct Ripple {
 #endif
 uint16_t ripple_base()
 {
-  uint16_t maxRipples = min(1 + (SEGLEN >> 2), MAX_RIPPLES);  // 56 max for 16 segment ESP8266
+  uint16_t maxRipples = std::min(1 + (SEGLEN >> 2), MAX_RIPPLES);  // 56 max for 16 segment ESP8266
   uint16_t dataSize = sizeof(ripple) * maxRipples;
 
   if (!SEGENV.allocateData(dataSize)) return mode_static(); //allocation failed
@@ -2413,7 +2413,7 @@ uint16_t ripple_base()
       uint16_t propagation = ((ripplestate/rippledecay - 1) * (SEGMENT.speed + 1));
       int16_t propI = propagation >> 8;
       uint8_t propF = propagation & 0xFF;
-      uint8_t amp = (ripplestate < 17) ? triwave8((ripplestate-1)*8) : map(ripplestate,17,255,255,2);
+      uint8_t amp = (ripplestate < 17) ? triwave8((ripplestate-1)*8) : wled_map(ripplestate,17,255,255,2);
 
       #ifndef WLED_DISABLE_2D
       if (SEGMENT.is2D()) {
@@ -2620,7 +2620,7 @@ uint16_t mode_halloween_eyes()
 {
   if (SEGLEN == 1) return mode_static();
   const uint16_t maxWidth = strip().isMatrix ? SEGMENT.virtualWidth() : SEGLEN;
-  const uint16_t HALLOWEEN_EYE_SPACE = max(2, strip().isMatrix ? SEGMENT.virtualWidth()>>4: SEGLEN>>5);
+  const uint16_t HALLOWEEN_EYE_SPACE = std::max(2, strip().isMatrix ? SEGMENT.virtualWidth()>>4: SEGLEN>>5);
   const uint16_t HALLOWEEN_EYE_WIDTH = HALLOWEEN_EYE_SPACE/2;
   uint16_t eyeLength = (2*HALLOWEEN_EYE_WIDTH) + HALLOWEEN_EYE_SPACE;
   if (eyeLength >= maxWidth) return mode_static(); //bail if segment too short
@@ -2833,7 +2833,7 @@ uint16_t mode_bouncing_balls(void) {
 
         uint32_t color = SEGCOLOR(0);
         if (SEGMENT.palette) {
-          color = SEGMENT.color_wheel(i*(256/max(numBalls, uint16_t(8))));
+          color = SEGMENT.color_wheel(i*(256/std::max(numBalls, uint16_t(8))));
         } else if (hasCol2) {
           color = SEGCOLOR(i % NUM_COLORS);
         }
@@ -3123,7 +3123,7 @@ uint16_t candle(bool multi)
 {
   if (multi && SEGLEN > 1) {
     //allocate segment data
-    uint16_t dataSize = max(1, SEGLEN -1) *3; //max. 1365 pixels (ESP8266)
+    uint16_t dataSize = std::max(1, SEGLEN -1) *3; //max. 1365 pixels (ESP8266)
     if (!SEGENV.allocateData(dataSize)) return candle(false); //allocation failed
   }
 
@@ -3360,7 +3360,7 @@ uint16_t mode_exploding_fireworks(void)
   if (segs <= (strip().getMaxSegments() /4)) maxData *= 2; //ESP8266: 1024 if <= 4 segs ESP32: 2560 if <= 8 segs
   int maxSparks = maxData / sizeof(spark); //ESP8266: max. 21/42/85 sparks/seg, ESP32: max. 53/106/213 sparks/seg
 
-  uint16_t numSparks = min(2 + ((rows*cols) >> 1), maxSparks);
+  uint16_t numSparks = std::min(2 + ((rows*cols) >> 1), maxSparks);
   uint16_t dataSize = sizeof(spark) * numSparks;
   if (!SEGENV.allocateData(dataSize + sizeof(float))) return mode_static(); //allocation failed
   float *dying_gravity = reinterpret_cast<float*>(SEGENV.data + dataSize);
@@ -3500,7 +3500,7 @@ uint16_t mode_drip(void)
       uint8_t numDrops = 1 + (SEGMENT.intensity >> 6); // 255>>6 = 3
 
       float gravity = -0.0005 - (SEGMENT.speed/50000.0);
-      gravity *= max(1, SEGLEN-1);
+      gravity *= std::max(1, SEGLEN-1);
       int sourcedrop = 12;
 
       for (int j=0;j<numDrops;j++) {
@@ -3516,7 +3516,7 @@ uint16_t mode_drip(void)
           if (drops[j].col>255) drops[j].col=255;
           SEGMENT.setPixelColor(indexToVStrip(uint16_t(drops[j].pos), stripNr), color_blend(BLACK,SEGCOLOR(0),drops[j].col));
 
-          drops[j].col += map(SEGMENT.speed, 0, 255, 1, 6); // swelling
+          drops[j].col += wled_map(SEGMENT.speed, 0, 255, 1, 6); // swelling
 
           if (random8() < drops[j].col/10) {               // random drop
             drops[j].colIndex=2;               //fall
@@ -3605,7 +3605,7 @@ uint16_t mode_tetrix(void) {
         // if the speed is set to 1 this should take 5s and at 255 it should take 0.25s
         // as this is dependant on SEGLEN it should be taken into account and the fact that effect runs every FRAMETIME s
         int speed = SEGMENT.speed ? SEGMENT.speed : random8(1,255);
-        speed = map(speed, 1, 255, 5000, 250); // time taken for full (SEGLEN) drop
+        speed = wled_map(speed, 1, 255, 5000, 250); // time taken for full (SEGLEN) drop
         drop->speed = float(SEGLEN * FRAMETIME) / float(speed); // set speed
         drop->pos   = SEGLEN;             // start at end of segment (no need to subtract 1)
         if (!SEGMENT.check1) drop->col = random8(0,15)<<4;   // limit color choices so there is enough HUE gap
@@ -3700,7 +3700,7 @@ uint16_t mode_percent(void) {
     for (int i = 0; i < SEGLEN; i++) {
     	if (i < SEGENV.aux1) {
         if (SEGMENT.check1)
-          SEGMENT.setPixelColor(i, SEGMENT.color_from_palette(map(percent,0,100,0,255), false, false, 0));
+          SEGMENT.setPixelColor(i, SEGMENT.color_from_palette(wled_map(percent,0,100,0,255), false, false, 0));
         else
           SEGMENT.setPixelColor(i, SEGMENT.color_from_palette(i, true, PALETTE_SOLID_WRAP, 0));
     	}
@@ -3715,7 +3715,7 @@ uint16_t mode_percent(void) {
     	}
     	else {
         if (SEGMENT.check1)
-          SEGMENT.setPixelColor(i, SEGMENT.color_from_palette(map(percent,100,200,255,0), false, false, 0));
+          SEGMENT.setPixelColor(i, SEGMENT.color_from_palette(wled_map(percent,100,200,255,0), false, false, 0));
         else
           SEGMENT.setPixelColor(i, SEGMENT.color_from_palette(i, true, PALETTE_SOLID_WRAP, 0));
     	}
@@ -3912,7 +3912,7 @@ uint16_t mode_sunrise() {
     if (durMins > 60) durMins -= 60;
     uint32_t s10Target = durMins * 600;
     if (s10SinceStart > s10Target) s10SinceStart = s10Target;
-    stage = map(s10SinceStart, 0, s10Target, 0, 0xFFFF);
+    stage = wled_map(s10SinceStart, 0, s10Target, 0, 0xFFFF);
     if (SEGMENT.speed > 60) stage = 0xFFFF - stage; //sunset
   }
 
@@ -4153,7 +4153,7 @@ typedef struct Spotlight {
 uint16_t mode_dancing_shadows(void)
 {
   if (SEGLEN == 1) return mode_static();
-  uint8_t numSpotlights = map(SEGMENT.intensity, 0, 255, 2, SPOT_MAX_COUNT);  // 49 on 32 segment ESP32, 17 on 16 segment ESP8266
+  uint8_t numSpotlights = wled_map(SEGMENT.intensity, 0, 255, 2, SPOT_MAX_COUNT);  // 49 on 32 segment ESP32, 17 on 16 segment ESP8266
   bool initialize = SEGENV.aux0 != numSpotlights;
   SEGENV.aux0 = numSpotlights;
 
@@ -4223,7 +4223,7 @@ uint16_t mode_dancing_shadows(void)
         case SPOT_TYPE_GRADIENT:
           for (size_t j = 0; j < spotlights[i].width; j++) {
             if ((start + j) >= 0 && (start + j) < SEGLEN) {
-              SEGMENT.blendPixelColor(start + j, color, cubicwave8(map(j, 0, spotlights[i].width - 1, 0, 255)));
+              SEGMENT.blendPixelColor(start + j, color, cubicwave8(wled_map(j, 0, spotlights[i].width - 1, 0, 255)));
             }
           }
         break;
@@ -4231,7 +4231,7 @@ uint16_t mode_dancing_shadows(void)
         case SPOT_TYPE_2X_GRADIENT:
           for (size_t j = 0; j < spotlights[i].width; j++) {
             if ((start + j) >= 0 && (start + j) < SEGLEN) {
-              SEGMENT.blendPixelColor(start + j, color, cubicwave8(2 * map(j, 0, spotlights[i].width - 1, 0, 255)));
+              SEGMENT.blendPixelColor(start + j, color, cubicwave8(2 * wled_map(j, 0, spotlights[i].width - 1, 0, 255)));
             }
           }
         break;
@@ -4296,7 +4296,7 @@ uint16_t mode_blends(void) {
   uint16_t dataSize = sizeof(uint32_t) * (pixelLen + 1);  // max segment length of 56 pixels on 16 segment ESP8266
   if (!SEGENV.allocateData(dataSize)) return mode_static(); //allocation failed
   uint32_t* pixels = reinterpret_cast<uint32_t*>(SEGENV.data);
-  uint8_t blendSpeed = map(SEGMENT.intensity, 0, UINT8_MAX, 10, 128);
+  uint8_t blendSpeed = wled_map(SEGMENT.intensity, 0, UINT8_MAX, 10, 128);
   uint8_t shift = (strip().now * ((SEGMENT.speed >> 3) +1)) >> 8;
 
   for (int i = 0; i < pixelLen; i++) {
@@ -4347,8 +4347,8 @@ uint16_t mode_tv_simulator(void) {
   if (!SEGENV.allocateData(sizeof(tvSim))) return mode_static(); //allocation failed
   TvSim* tvSimulator = reinterpret_cast<TvSim*>(SEGENV.data);
 
-  uint8_t colorSpeed     = map(SEGMENT.speed,     0, UINT8_MAX,  1, 20);
-  uint8_t colorIntensity = map(SEGMENT.intensity, 0, UINT8_MAX, 10, 30);
+  uint8_t colorSpeed     = wled_map(SEGMENT.speed,     0, UINT8_MAX,  1, 20);
+  uint8_t colorIntensity = wled_map(SEGMENT.intensity, 0, UINT8_MAX, 10, 30);
 
   i = SEGMENT.speed << 8 | SEGMENT.intensity;
   if (i != tvSimulator->sliderValues) {
@@ -4417,9 +4417,9 @@ uint16_t mode_tv_simulator(void) {
 
   // fade from prev volor to next color
   if (tvSimulator->elapsed < tvSimulator->fadeTime) {
-    r = map(tvSimulator->elapsed, 0, tvSimulator->fadeTime, tvSimulator->pr, nr);
-    g = map(tvSimulator->elapsed, 0, tvSimulator->fadeTime, tvSimulator->pg, ng);
-    b = map(tvSimulator->elapsed, 0, tvSimulator->fadeTime, tvSimulator->pb, nb);
+    r = wled_map(tvSimulator->elapsed, 0, tvSimulator->fadeTime, tvSimulator->pr, nr);
+    g = wled_map(tvSimulator->elapsed, 0, tvSimulator->fadeTime, tvSimulator->pg, ng);
+    b = wled_map(tvSimulator->elapsed, 0, tvSimulator->fadeTime, tvSimulator->pb, nb);
   } else { // Avoid divide-by-zero in map()
     r = nr;
     g = ng;
@@ -4555,7 +4555,7 @@ uint16_t mode_aurora(void) {
 
   if(SEGENV.aux0 != SEGMENT.intensity || SEGENV.call == 0) {
     //Intensity slider changed or first call
-    SEGENV.aux1 = map(SEGMENT.intensity, 0, 255, 2, W_MAX_COUNT);
+    SEGENV.aux1 = wled_map(SEGMENT.intensity, 0, 255, 2, W_MAX_COUNT);
     SEGENV.aux0 = SEGMENT.intensity;
 
     if(!SEGENV.allocateData(sizeof(AuroraWave) * SEGENV.aux1)) { // 26 on 32 segment ESP32, 9 on 16 segment ESP8266
@@ -4618,7 +4618,7 @@ uint16_t mode_perlinmove(void) {
   SEGMENT.fade_out(255-SEGMENT.custom1);
   for (int i = 0; i < SEGMENT.intensity/16 + 1; i++) {
     uint16_t locn = inoise16(get_millisecond_timer()*128/(260-SEGMENT.speed)+i*15000, get_millisecond_timer()*128/(260-SEGMENT.speed)); // Get a new pixel location from moving noise.
-    uint16_t pixloc = map(locn, 50*256, 192*256, 0, SEGLEN-1);                                            // Map that to the length of the strand, and ensure we don't go over.
+    uint16_t pixloc = wled_map(locn, 50*256, 192*256, 0, SEGLEN-1);                                            // Map that to the length of the strand, and ensure we don't go over.
     SEGMENT.setPixelColor(pixloc, SEGMENT.color_from_palette(pixloc%255, false, PALETTE_SOLID_WRAP, 0));
   }
 
@@ -4834,7 +4834,7 @@ uint16_t mode_2DDrift() {              // By: Stepko   https://editor.soulmateli
   const uint16_t rows = SEGMENT.virtualHeight();
 
   SEGMENT.fadeToBlackBy(128);
-  const uint16_t maxDim = max(cols, rows)/2;
+  const uint16_t maxDim = std::max(cols, rows)/2;
   unsigned long t = get_millisecond_timer() / (32 - (SEGMENT.speed>>3));
   unsigned long t_20 = t/20; // softhack007: pre-calculating this gives about 10% speedup
   for (float i = 1; i < maxDim; i += 0.25) {
@@ -4875,7 +4875,7 @@ uint16_t mode_2Dfirenoise(void) {               // firenoise2d. By Andrew Tuline
   for (int j=0; j < cols; j++) {
     for (int i=0; i < rows; i++) {
       indexx = inoise8(j*yscale*rows/255, i*xscale+get_millisecond_timer()/4);                                           // We're moving along our Perlin map.
-      SEGMENT.setPixelColorXY(j, i, ColorFromPalette(SEGPALETTE, min(i*(indexx)>>4, 255), i*255/cols, LINEARBLEND)); // With that value, look up the 8 bit colour palette value and assign it to the current LED.
+      SEGMENT.setPixelColorXY(j, i, ColorFromPalette(SEGPALETTE, std::min(i*(indexx)>>4, 255), i*255/cols, LINEARBLEND)); // With that value, look up the 8 bit colour palette value and assign it to the current LED.
     } // for i
   } // for j
 
@@ -4944,7 +4944,7 @@ uint16_t mode_2Dgameoflife(void) { // Written by Ewoud Wijma, inspired by https:
 
     for (int y = 0; y < rows; y++) for (int x = 0; x < cols; x++) prevLeds[XY(x,y)] = CRGB::Black;
     memset(crcBuffer, 0, sizeof(uint16_t)*crcBufferLen);
-  } else if (strip().now - SEGENV.step < FRAMETIME_FIXED * (uint32_t)map(SEGMENT.speed,0,255,64,4)) {
+  } else if (strip().now - SEGENV.step < FRAMETIME_FIXED * (uint32_t)wled_map(SEGMENT.speed,0,255,64,4)) {
     // update only when appropriate time passes (in 42 FPS slots)
     return FRAMETIME;
   }
@@ -5173,8 +5173,8 @@ uint16_t mode_2DLissajous(void) {            // By: Andrew Tuline
     //float ylocn = float(cos8(now/4+i*2)) / 255.0f;
     uint_fast8_t xlocn = sin8(phase/2 + (i*SEGMENT.speed)/32);
     uint_fast8_t ylocn = cos8(phase/2 + i*2);
-    xlocn = (cols < 2) ? 1 : (map(2*xlocn, 0,511, 0,2*(cols-1)) +1) /2;    // softhack007: "(2* ..... +1) /2" for proper rounding
-    ylocn = (rows < 2) ? 1 : (map(2*ylocn, 0,511, 0,2*(rows-1)) +1) /2;    // "rows > 1" is needed to avoid div/0 in map()
+    xlocn = (cols < 2) ? 1 : (wled_map(2*xlocn, 0,511, 0,2*(cols-1)) +1) /2;    // softhack007: "(2* ..... +1) /2" for proper rounding
+    ylocn = (rows < 2) ? 1 : (wled_map(2*ylocn, 0,511, 0,2*(rows-1)) +1) /2;    // "rows > 1" is needed to avoid div/0 in map()
     SEGMENT.setPixelColorXY((uint8_t)xlocn, (uint8_t)ylocn, SEGMENT.color_from_palette(get_millisecond_timer()/100+i, false, PALETTE_SOLID_WRAP, 0));
   }
 
@@ -5198,8 +5198,8 @@ uint16_t mode_2Dmatrix(void) {                  // Matrix2D. By Jeremy Williams.
     SEGENV.step = 0;
   }
 
-  uint8_t fade = map(SEGMENT.custom1, 0, 255, 50, 250);    // equals trail size
-  uint8_t speed = (256-SEGMENT.speed) >> map(MIN(rows, 150), 0, 150, 0, 3);    // slower speeds for small displays
+  uint8_t fade = wled_map(SEGMENT.custom1, 0, 255, 50, 250);    // equals trail size
+  uint8_t speed = (256-SEGMENT.speed) >> wled_map(MIN(rows, 150), 0, 150, 0, 3);    // slower speeds for small displays
 
   CRGB spawnColor;
   CRGB trailColor;
@@ -5270,11 +5270,11 @@ uint16_t mode_2Dmetaballs(void) {   // Metaballs by Stefan Petrick. Cannot have 
   float speed = 0.25f * (1+(SEGMENT.speed>>6));
 
   // get some 2 random moving points
-  uint8_t x2 = map(inoise8(strip().now * speed, 25355, 685), 0, 255, 0, cols-1);
-  uint8_t y2 = map(inoise8(strip().now * speed, 355, 11685), 0, 255, 0, rows-1);
+  uint8_t x2 = wled_map(inoise8(strip().now * speed, 25355, 685), 0, 255, 0, cols-1);
+  uint8_t y2 = wled_map(inoise8(strip().now * speed, 355, 11685), 0, 255, 0, rows-1);
 
-  uint8_t x3 = map(inoise8(strip().now * speed, 55355, 6685), 0, 255, 0, cols-1);
-  uint8_t y3 = map(inoise8(strip().now * speed, 25355, 22685), 0, 255, 0, rows-1);
+  uint8_t x3 = wled_map(inoise8(strip().now * speed, 55355, 6685), 0, 255, 0, cols-1);
+  uint8_t y3 = wled_map(inoise8(strip().now * speed, 25355, 22685), 0, 255, 0, rows-1);
 
   // and one Lissajou function
   uint8_t x1 = beatsin8(23 * speed, 0, cols-1);
@@ -5301,7 +5301,7 @@ uint16_t mode_2Dmetaballs(void) {   // Metaballs by Stefan Petrick. Cannot have 
 
       // map color between thresholds
       if (color > 0 and color < 60) {
-        SEGMENT.setPixelColorXY(x, y, SEGMENT.color_from_palette(map(color * 9, 9, 531, 0, 255), false, PALETTE_SOLID_WRAP, 0));
+        SEGMENT.setPixelColorXY(x, y, SEGMENT.color_from_palette(wled_map(color * 9, 9, 531, 0, 255), false, PALETTE_SOLID_WRAP, 0));
       } else {
         SEGMENT.setPixelColorXY(x, y, SEGMENT.color_from_palette(0, false, PALETTE_SOLID_WRAP, 0));
       }
@@ -5353,10 +5353,10 @@ uint16_t mode_2DPlasmaball(void) {                   // By: Stepko https://edito
   uint_fast32_t t = (get_millisecond_timer() * 8) / (256 - SEGMENT.speed);  // optimized to avoid float
   for (int i = 0; i < cols; i++) {
     uint16_t thisVal = inoise8(i * 30, t, t);
-    uint16_t thisMax = map(thisVal, 0, 255, 0, cols-1);
+    uint16_t thisMax = wled_map(thisVal, 0, 255, 0, cols-1);
     for (int j = 0; j < rows; j++) {
       uint16_t thisVal_ = inoise8(t, j * 30, t);
-      uint16_t thisMax_ = map(thisVal_, 0, 255, 0, rows-1);
+      uint16_t thisMax_ = wled_map(thisVal_, 0, 255, 0, rows-1);
       uint16_t x = (i + thisMax_ - cols / 2);
       uint16_t y = (j + thisMax - cols / 2);
       uint16_t cx = (i + thisMax_);
@@ -5396,8 +5396,8 @@ uint16_t mode_2DPolarLights(void) {        // By: Kostyantyn Matviyevskyy  https
     SEGENV.step = 0;
   }
 
-  float adjustHeight = (float)map(rows, 8, 32, 28, 12); // maybe use mapf() ???
-  uint16_t adjScale = map(cols, 8, 64, 310, 63);
+  float adjustHeight = (float)wled_map(rows, 8, 32, 28, 12); // maybe use mapf() ???
+  uint16_t adjScale = wled_map(cols, 8, 64, 310, 63);
 /*
   if (SEGENV.aux1 != SEGMENT.custom1/12) {   // Hacky palette rotation. We need that black.
     SEGENV.aux1 = SEGMENT.custom1/12;
@@ -5413,8 +5413,8 @@ uint16_t mode_2DPolarLights(void) {        // By: Kostyantyn Matviyevskyy  https
     }
   }
 */
-  uint16_t _scale = map(SEGMENT.intensity, 0, 255, 30, adjScale);
-  uint8_t _speed = map(SEGMENT.speed, 0, 255, 128, 16);
+  uint16_t _scale = wled_map(SEGMENT.intensity, 0, 255, 30, adjScale);
+  uint8_t _speed = wled_map(SEGMENT.speed, 0, 255, 128, 16);
 
   for (int x = 0; x < cols; x++) {
     for (int y = 0; y < rows; y++) {
@@ -5443,8 +5443,8 @@ uint16_t mode_2DPulser(void) {                       // By: ldirko   https://edi
   SEGMENT.fadeToBlackBy(8 - (SEGMENT.intensity>>5));
   uint32_t a = strip().now / (18 - SEGMENT.speed / 16);
   uint16_t x = (a / 14) % cols;
-  uint16_t y = map((sin8(a * 5) + sin8(a * 4) + sin8(a * 2)), 0, 765, rows-1, 0);
-  SEGMENT.setPixelColorXY(x, y, ColorFromPalette(SEGPALETTE, map(y, 0, rows-1, 0, 255), 255, LINEARBLEND));
+  uint16_t y = wled_map((sin8(a * 5) + sin8(a * 4) + sin8(a * 2)), 0, 765, rows-1, 0);
+  SEGMENT.setPixelColorXY(x, y, ColorFromPalette(SEGPALETTE, wled_map(y, 0, rows-1, 0, 255), 255, LINEARBLEND));
 
   SEGMENT.blur(1 + (SEGMENT.intensity>>4));
 
@@ -5626,7 +5626,7 @@ uint16_t mode_2Dspaceships(void) {    //// Space ships by stepko (c)05.02.21 [ht
     SEGENV.step = tb + random8(4);
   }
 
-  SEGMENT.fadeToBlackBy(map(SEGMENT.speed, 0, 255, 248, 16));
+  SEGMENT.fadeToBlackBy(wled_map(SEGMENT.speed, 0, 255, 248, 16));
   SEGMENT.move(SEGENV.aux0, 1);
 
   for (size_t i = 0; i < 8; i++) {
@@ -5747,7 +5747,7 @@ uint16_t mode_2Dghostrider(void) {
   if (!SEGENV.allocateData(sizeof(lighter_t))) return mode_static(); //allocation failed
   lighter_t *lighter = reinterpret_cast<lighter_t*>(SEGENV.data);
 
-  const size_t maxLighters = min(cols + rows, LIGHTERS_AM);
+  const size_t maxLighters = std::min(cols + rows, LIGHTERS_AM);
 
   if (SEGENV.aux0 != cols || SEGENV.aux1 != rows) {
     SEGENV.aux0 = cols;
@@ -5938,7 +5938,7 @@ static const char _data_FX_MODE_2DBLOBS[] = "Blobs@!,# blobs,Blur,Trail;!;!;2;c1
     rotLH = letterHeight;
   }
 
-  char text[WLED_MAX_SEGNAME_LEN+1] = {'\0'};
+  char text[max_SEGNAME_LEN+1] = {'\0'};
   if (SEGMENT.name) for (size_t i=0,j=0; i<strlen(SEGMENT.name); i++) if (SEGMENT.name[i]>31 && SEGMENT.name[i]<128) text[j++] = SEGMENT.name[i];
   const bool zero = strchr(text, '0') != nullptr;
 
@@ -6021,7 +6021,7 @@ uint16_t mode_2Ddriftrose(void) {
 
   const float CX = (cols-cols%2)/2.f - .5f;
   const float CY = (rows-rows%2)/2.f - .5f;
-  const float L = min(cols, rows) / 2.f;
+  const float L = std::min(cols, rows) / 2.f;
 
   SEGMENT.fadeToBlackBy(32+(SEGMENT.speed>>3));
   for (size_t i = 1; i < 37; i++) {
@@ -7524,7 +7524,7 @@ uint16_t mode_2Dsoap() {
   int amplitude;
   int8_t shiftX = 0; //(SEGMENT.custom1 - 128) / 4;
   int8_t shiftY = 0; //(SEGMENT.custom2 - 128) / 4;
-  CRGB ledsbuff[max(cols,rows)];
+  CRGB ledsbuff[std::max(cols,rows)];
 
   amplitude = (cols >= 16) ? (cols-8)/8 : 1;
   for (int y = 0; y < rows; y++) {
@@ -7588,7 +7588,7 @@ uint16_t mode_2Doctopus() {
 
   const uint16_t cols = SEGMENT.virtualWidth();
   const uint16_t rows = SEGMENT.virtualHeight();
-  const uint8_t mapp = 180 / max(cols,rows);
+  const uint8_t mapp = 180 / std::max(cols,rows);
 
   typedef struct {
     uint8_t angle;
@@ -7626,7 +7626,7 @@ uint16_t mode_2Doctopus() {
       uint8_t radius = rMap[XY(x,y)].radius;
       //CRGB c = CHSV(SEGENV.step / 2 - radius, 255, sin8(sin8((angle * 4 - radius) / 4 + SEGENV.step) + radius - SEGENV.step * 2 + angle * (SEGMENT.custom3/3+1)));
       uint16_t intensity = sin8(sin8((angle * 4 - radius) / 4 + SEGENV.step/2) + radius - SEGENV.step + angle * (SEGMENT.custom3/4+1));
-      intensity = map(intensity*intensity, 0, 65535, 0, 255); // add a bit of non-linearity for cleaner display
+      intensity = wled_map(intensity*intensity, 0, 65535, 0, 255); // add a bit of non-linearity for cleaner display
       CRGB c = ColorFromPalette(SEGPALETTE, SEGENV.step / 2 - radius, intensity);
       SEGMENT.setPixelColorXY(x, y, c);
     }

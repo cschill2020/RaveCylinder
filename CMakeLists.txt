@@ -2,6 +2,12 @@ cmake_minimum_required(VERSION 3.5.0)
 project(RaveCylinder VERSION 0.1.0 LANGUAGES C CXX)
 configure_file(RaveCylinder.h.in RaveCylinder.h)
 
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(PC_HTTPSERVER REQUIRED IMPORTED_TARGET
+				  libhttpserver>=0.19)
+pkg_check_modules(PC_MICROHTTPD REQUIRED IMPORTED_TARGET
+				  libmicrohttpd>=0.9.52)
+                  
 SET(SOURCES
     Color.h 
     ColorPalettes.h ColorPalettes.cpp
@@ -20,7 +26,6 @@ SET(SOURCES
     WLED.cpp WLED.h 
     main.cpp
    )
-
 add_executable(RaveCylinder ${SOURCES})
 
 target_include_directories(RaveCylinder PUBLIC
@@ -31,3 +36,9 @@ target_compile_features(RaveCylinder PRIVATE cxx_std_17)
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 include(CPack)
+
+target_link_libraries(RaveCylinder
+    PRIVATE
+    PkgConfig::PC_HTTPSERVER
+    PkgConfig::PC_MICROHTTPD
+)
