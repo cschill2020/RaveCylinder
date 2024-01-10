@@ -487,10 +487,7 @@ public:
         step(0), call(0), aux0(0), aux1(0), data(nullptr), _capabilities(0),
         _dataLen(0),
         _t(nullptr){
-// refreshLightCapabilities();
-#ifdef WLED_DEBUG
-// Serial.printf("-- Creating segment: %p\n", this);
-#endif
+        //refreshLightCapabilities();
         }
 
         Segment(uint16_t sStartX, uint16_t sStopX, uint16_t sStartY,

@@ -4,6 +4,12 @@
 #include <stdint.h>
 #include <math.h>
 
+// WLED_json.cpp
+#include <httpserver.hpp>
+//#include "src/dependencies/json/ArduinoJson-v6.h"
+//#include "src/dependencies/json/AsyncJson-v6.h"
+#include "WLED_FX.h"
+
 namespace ravecylinder {
 inline uint8_t pgm_read_byte_near(uint8_t *p) { return *p; }
 inline uint8_t pgm_read_byte_near(const unsigned char *p) { return *p; }
@@ -71,6 +77,18 @@ int16_t inoise16_raw(uint32_t x);
 #define atan_t atan
 #define fmod_t fmod
 #define floor_t floor
+
+//json.cpp
+// bool deserializeSegment(json& elem, byte it, byte presetId = 0);
+// bool deserializeState(JsonObject root, byte callMode = CALL_MODE_DIRECT_CHANGE, byte presetId = 0);
+// void serializeSegment(JsonObject& root, Segment& seg, byte id, bool forPreset = false, bool segmentBounds = true);
+// void serializeState(JsonObject root, bool forPreset = false, bool includeBri = true, bool segmentBounds = true, bool selectedSegmentsOnly = false);
+// void serializeInfo(JsonObject root);
+// void serializeModeNames(JsonArray root);
+// void serializeModeData(JsonArray root);
+// #ifdef WLED_ENABLE_JSONLIVE
+// bool serveLiveLeds(AsyncWebServerRequest* request, uint32_t wsClient = 0);
+// #endif
 
 } // namespace ravecylinder
 #endif

@@ -450,7 +450,7 @@ namespace ravecylinder {
 #ifdef ESP8266
 #define MAX_LEDS 1664 // can't rely on memory limit to limit this to 1600 LEDs
 #else
-#define MAX_LEDS 8192
+#define MAX_LEDS 60000
 #endif
 #endif
 

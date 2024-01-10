@@ -365,9 +365,9 @@ CRGBPalette16 &Segment::loadPalette(CRGBPalette16 &targetPalette, uint8_t pal) {
       targetPalette =
           strip().customPalettes[255 - pal]; // we checked bounds above
     } else {
-      byte tcp[72];
-      memcpy_P(tcp, (byte *)pgm_read_dword(&(gGradientPalettes[pal - 13])), 72);
-      targetPalette.loadDynamicGradientPalette(tcp);
+      // byte tcp[72];
+      //memcpy_P(tcp, (byte *)pgm_read_dword(&(gGradientPalettes[pal - 13])), 72);
+      targetPalette.loadDynamicGradientPalette(gGradientPalettes[pal - 13]);
     }
     break;
   }
@@ -1453,10 +1453,13 @@ void WS2812FX::enumerateLedmaps() {
 // do not call this method from system context (network callback)
 void WS2812FX::finalizeInit(void) {
   // reset segment runtimes
+  int length = 0;
   for (segment &seg : _segments) {
     seg.markForReset();
     seg.resetIfRequired();
+    length += seg.length();
   }
+  std::cout << "seg length = " << length << std::endl;
 
   // for the lack of better place enumerate ledmaps here
   // if we do it in json.cpp (serializeInfo()) we are getting flashes on LEDs
@@ -1489,6 +1492,8 @@ void WS2812FX::finalizeInit(void) {
     }
   }
 
+  std::cout << "Num Busses: " << busses.getNumBusses() << std::endl;
+  std::cout << "GetLengthTotal: " << strip().getLengthTotal() << std::endl;
   _length = 0;
   for (int i = 0; i < busses.getNumBusses(); i++) {
     Bus *bus = busses.getBus(i);
@@ -1516,6 +1521,7 @@ void WS2812FX::finalizeInit(void) {
 #endif
   }
 
+  std::cout << "isMatrix: " << isMatrix << std::endl;
   if (isMatrix)
     setUpMatrix();
   else {
@@ -1617,7 +1623,7 @@ void WS2812FX::service() {
     DEBUG_PRINTLN(F("Slow effects."));
 #endif
   if (doShow) {
-    yield();
+    WLED_yield();
     show();
   }
 #ifdef WLED_DEBUG
@@ -1894,6 +1900,8 @@ uint16_t WS2812FX::getLengthTotal(void) {
       Segment::maxWidth *
       Segment::maxHeight; // will be _length for 1D (see finalizeInit()) but
                           // should cover whole matrix for 2D
+  std::cout << "len = " << len << std::endl;
+  std::cout << Segment::maxWidth << " : " << Segment::maxHeight << std::endl;
   if (isMatrix && _length > len)
     len = _length; // for 2D with trailing strip
   return len;

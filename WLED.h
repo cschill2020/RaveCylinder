@@ -2,19 +2,24 @@
 #define WLED_H
 
 #include "Pixel.h"
+//#include "WLED_FX.h"
 #include "WLED_const.h"
+
 #include <cstdint>
-// #include "fcn_declare.h"
+#include <httpserver.hpp>
+#include <nlohmann/json.hpp>
+
+// #include "WLED_fcn_declare.h"
 // #include "NodeStruct.h"
 // #include "pin_manager.h"
 // #include "bus_manager.h"
-// #include "WLED_FX.h"
+using json = nlohmann::json;
 
 namespace ravecylinder {
 
 #define _INIT(x) = x
 
-#define NUM_PIXELS 20
+#define NUM_PIXELS 500
 extern CRGB _pixels[];
 
 // extern WS2812FX strip _INIT(WS2812FX());
@@ -66,17 +71,22 @@ extern uint16_t ledMaps;
 #define B(c) (uint8_t(c))
 #define W(c) (uint8_t((c) >> 24))
 
-#define yield() 
+#define WLED_yield()
 
 // color
 extern byte lastRandomIndex;
-extern char* ledmapNames[];
+extern char *ledmapNames[];
 
 #define wled_map(a1, a2, b1, b2, s) (b1 + (s - a1) * (b2 - b1) / (a2 - a1))
 
-void colorHStoRGB(uint16_t hue, byte sat, byte* rgb);
+void colorHStoRGB(uint16_t hue, byte sat, byte *rgb);
 uint32_t gamma32(uint32_t);
 
+std::shared_ptr<httpserver::http_response>
+serveJson(const httpserver::http_request &request);
+
+// Bus Manager class for storing pixel information.  Not really doing
+// bus stuff for Rpi, added for compatibility with WLED implementation.
 class BusConfig {
 public:
   BusConfig(...) {}
@@ -115,11 +125,26 @@ public:
   Bus bus;
 };
 
+// WLED FS is not used.  We are using the standard linux file-system.
+// Added for compatibility with WLED implementations.
 class WLEDFileSystem {
 public:
   bool exists(...) { return false; }
 };
 extern WLEDFileSystem WLED_FS;
+
+// Classes used by the http service.  Implementation in WLED_server.cpp.
+class index_response : public httpserver::http_resource {
+public:
+  std::shared_ptr<httpserver::http_response>
+  render_GET(const httpserver::http_request &req);
+};
+
+class json_response : public httpserver::http_resource {
+public:
+  std::shared_ptr<httpserver::http_response>
+  render_GET(const httpserver::http_request &req);
+};
 
 } // namespace ravecylinder
 
