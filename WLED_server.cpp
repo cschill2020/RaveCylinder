@@ -39,7 +39,7 @@ index_response::render_GET(const httpserver::http_request &req) {
   } else {
     filename = base_filename + std::string(req.get_path());
   }
-  std::cout << filename << std::endl;
+  std::cout << "Reading: "<< filename << std::endl;
   return std::shared_ptr<httpserver::file_response>(
       new httpserver::file_response(filename, 200, getContentType(filename)));
 }

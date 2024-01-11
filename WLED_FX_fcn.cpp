@@ -1459,7 +1459,6 @@ void WS2812FX::finalizeInit(void) {
     seg.resetIfRequired();
     length += seg.length();
   }
-  std::cout << "seg length = " << length << std::endl;
 
   // for the lack of better place enumerate ledmaps here
   // if we do it in json.cpp (serializeInfo()) we are getting flashes on LEDs
@@ -1492,8 +1491,6 @@ void WS2812FX::finalizeInit(void) {
     }
   }
 
-  std::cout << "Num Busses: " << busses.getNumBusses() << std::endl;
-  std::cout << "GetLengthTotal: " << strip().getLengthTotal() << std::endl;
   _length = 0;
   for (int i = 0; i < busses.getNumBusses(); i++) {
     Bus *bus = busses.getBus(i);
@@ -1521,7 +1518,6 @@ void WS2812FX::finalizeInit(void) {
 #endif
   }
 
-  std::cout << "isMatrix: " << isMatrix << std::endl;
   if (isMatrix)
     setUpMatrix();
   else {
@@ -1900,8 +1896,6 @@ uint16_t WS2812FX::getLengthTotal(void) {
       Segment::maxWidth *
       Segment::maxHeight; // will be _length for 1D (see finalizeInit()) but
                           // should cover whole matrix for 2D
-  std::cout << "len = " << len << std::endl;
-  std::cout << Segment::maxWidth << " : " << Segment::maxHeight << std::endl;
   if (isMatrix && _length > len)
     len = _length; // for 2D with trailing strip
   return len;

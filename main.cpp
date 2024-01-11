@@ -249,8 +249,8 @@ int main() {
   // receiving simple UDP packets on DDP_PORT.  It is expecting
   // packets formatted according to the ddp protocol defined:
   // http://www.3waylabs.com/ddp/
-  UDPClient client;
-  client.OpenConnection("4.3.2.1", DDP_PORT);
+  // UDPClient client;
+  // client.OpenConnection("ravecylinder.local", DDP_PORT);
 
   // Initiate web server
   std::thread server_thread(startHTTPServer);
@@ -263,31 +263,22 @@ int main() {
   // Each cycle of the loop fills the global CRGB matrix
   // with colors for NUM_PIXELS.  Each frame is then sent
   // to the controller using DDP/UDP push.
-  initStrip(/*width*/ 100, /*height*/ 1, /*map*/ 0, /*brightness*/ 128,
-            /*fx mode*/ 10, /*speed*/ 225, /*intensity*/ 200, /*palette*/ 11,
+  initStrip(/*width*/ 100, /*height*/ 5, /*map*/ 0, /*brightness*/ 128,
+            /*fx mode*/ 10, /*speed*/ 10, /*intensity*/ 10, /*palette*/ 11,
             CRGB::Red, CRGB::Black, CRGB::Black, 0, 0, 0, 0, 0, 0, "");
-  std::cout << strip().getLengthTotal() << std::endl;
-  // strip().appendSegment(Segment(0, strip().getLengthTotal()));
   while (true) {
-    // test_loop();
-    // std::cout << unsigned(strip().getSegmentsNum()) << std::endl;
     strip().service();
 
     // TDOD: Separate the frame generation and display into parallel threads
     // using a TaskScheduler.
     // DDPOutput converts the pixel matrix into the set of packets processed
     // by the controller.
-    // for (int i = 0; i < 10; ++i) {
-    //   std::cout << "i: " << i << ", R = " << unsigned(_pixels[i].red)
-    //             << ", G = " << unsigned(_pixels[i].green)
-    //             << ", B = " << unsigned(_pixels[i].blue) << std::endl;
+    // DDPOutput output;
+    // std::vector<Packet> packets = output.GenerateFrame(_pixels, NUM_PIXELS);
+    // for (auto &packet : packets) {
+    //   // Send the packets.
+    //   client.SendTo(packet.GetBytes());
     // }
-    DDPOutput output;
-    std::vector<Packet> packets = output.GenerateFrame(_pixels, NUM_PIXELS);
-    for (auto &packet : packets) {
-      // Send the packets.
-      client.SendTo(packet.GetBytes());
-    }
     // A short delay is helpful to ensure the controller doesn't get
     // overwhelmed with packets.
     std::this_thread::sleep_for(std::chrono::milliseconds(5));
