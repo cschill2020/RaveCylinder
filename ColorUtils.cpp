@@ -138,9 +138,9 @@ void fill_gradient_RGB(CRGB *leds, uint16_t startpos, CRGB startcolor,
   gdelta87 *= 2;
   bdelta87 *= 2;
 
-  uint8_t r88 = startcolor.r << 8;
-  uint8_t g88 = startcolor.g << 8;
-  uint8_t b88 = startcolor.b << 8;
+  accum88 r88 = startcolor.r << 8;
+  accum88 g88 = startcolor.g << 8;
+  accum88 b88 = startcolor.b << 8;
   for (uint16_t i = startpos; i <= endpos; ++i) {
     leds[i] = CRGB(r88 >> 8, g88 >> 8, b88 >> 8);
     r88 += rdelta87;
@@ -404,7 +404,8 @@ void blur1d(CRGB *leds, uint16_t numLeds, fract8 blur_amount) {
 //   blurColumns(leds, width, height, blur_amount);
 // }
 
-// void blurRows(CRGB *leds, uint8_t width, uint8_t height, fract8 blur_amount) {
+// void blurRows(CRGB *leds, uint8_t width, uint8_t height, fract8 blur_amount)
+// {
 //   /*    for( uint8_t row = 0; row < height; row++) {
 //           CRGB* rowbase = leds + (row * width);
 //           blur1d( rowbase, width, blur_amount);

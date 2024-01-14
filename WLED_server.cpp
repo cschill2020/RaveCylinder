@@ -45,14 +45,16 @@ index_response::render_GET(const httpserver::http_request &req) {
 }
 
 std::shared_ptr<httpserver::http_response>
-handle_json_request(const httpserver::http_request &req) {
+json_response::render_GET(const httpserver::http_request &req) {
+  std::cout<<"json get: "<<req.get_path()<<std::endl;
   return serveJson(req);
 }
 
 std::shared_ptr<httpserver::http_response>
-json_response::render_GET(const httpserver::http_request &req) {
-  std::cout<<"json path: "<<req.get_path()<<std::endl;
-  return handle_json_request(req);
+json_response::render_POST(const httpserver::http_request &req) {
+  std::cout<<"json post: "<<req.get_path()<<std::endl;
+  std::cout<<"post req content: "<<req.get_content()<<std::endl;
+  return postJson(req);
 }
 
 } // namespace ravecylinder

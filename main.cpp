@@ -252,6 +252,10 @@ int main() {
   // UDPClient client;
   // client.OpenConnection("ravecylinder.local", DDP_PORT);
 
+  // Initiate strip
+  initStrip(/*width*/ NUM_PIXELS, /*height*/ 1, /*map*/ 0, /*brightness*/ 15,
+            /*fx mode*/ 10, /*speed*/ 255, /*intensity*/ 255, /*palette*/ 11,
+            CRGB::Red, CRGB::Black, CRGB::Black, 0, 0, 0, 0, 0, 0, "");
   // Initiate web server
   std::thread server_thread(startHTTPServer);
   server_thread.detach();
@@ -263,11 +267,14 @@ int main() {
   // Each cycle of the loop fills the global CRGB matrix
   // with colors for NUM_PIXELS.  Each frame is then sent
   // to the controller using DDP/UDP push.
-  initStrip(/*width*/ 100, /*height*/ 5, /*map*/ 0, /*brightness*/ 128,
-            /*fx mode*/ 10, /*speed*/ 10, /*intensity*/ 10, /*palette*/ 11,
-            CRGB::Red, CRGB::Black, CRGB::Black, 0, 0, 0, 0, 0, 0, "");
+  int i = 0;
   while (true) {
+    ++i;
     strip().service();
+    // if (_pixels[0].r > 0 || _pixels[0].g > 0 || _pixels[0].b > 0) {
+    //   std::cout<<unsigned(_pixels[0].r)<<" "<<unsigned(_pixels[0].g)<<"
+    //   "<<unsigned(_pixels[0].b)<<std::endl;
+    // }
 
     // TDOD: Separate the frame generation and display into parallel threads
     // using a TaskScheduler.
@@ -281,6 +288,6 @@ int main() {
     // }
     // A short delay is helpful to ensure the controller doesn't get
     // overwhelmed with packets.
-    std::this_thread::sleep_for(std::chrono::milliseconds(5));
+    std::this_thread::sleep_for(std::chrono::milliseconds(3));
   }
 }

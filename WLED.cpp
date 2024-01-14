@@ -6,13 +6,57 @@ namespace ravecylinder {
 
 // uint16_t rand16seed = 0;
 time_t localTime = time(nullptr);
-uint8_t randomPaletteChangeTime = 5;
 bool stateChanged = false;
-byte lastRandomIndex = 0;
-char *ledmapNames[WLED_MAX_LEDMAPS] = {nullptr};
 uint16_t ledMaps = 0xFFFF;
 CRGB _pixels[NUM_PIXELS];
 
+// Global variable extern initialization
+
+// LED CONFIG
+byte nightlightTargetBri = 0; // brightness after nightlight is over
+byte nightlightDelayMins = 60;
+byte nightlightMode =
+    NL_MODE_FADE; // See const.h for available modes. Was nightlightFade
+
+// SYNC CONFIG
+bool notifyDirect = false; // send notification if change via UI or HTTP API
+
+// color
+byte lastRandomIndex = 0;
+
+// transitions
+bool fadeTransition = true;
+bool modeBlending = true;
+bool transitionActive = false;
+uint16_t transitionDelay = 750;
+uint16_t transitionDelayDefault = 750;
+unsigned long transitionStartTime;
+float tperLast = 0.0f;
+bool jsonTransitionOnce = false;
+uint8_t randomPaletteChangeTime = 5;
+
+// nightlight
+bool nightlightActive = false;
+bool nightlightActiveOld = false;
+uint32_t nightlightDelayMs = 10;
+byte nightlightDelayMinsDefault = nightlightDelayMins;
+unsigned long nightlightStartTime;
+byte briNlT = 0;                // current nightlight brightness
+byte *colNlT[4] = {0, 0, 0, 0}; // current nightlight color
+
+// brightness
+byte bri = 128;
+byte briLast = 128;
+
+// playlists
+int16_t currentPlaylist = -1;
+
+// presets
+byte currentPreset = 0;
+byte errorFlag = 0;
+
+// led fx library object
+char *ledmapNames[WLED_MAX_LEDMAPS] = {nullptr};
 BusManager busses;
 WLEDFileSystem WLED_FS;
 
