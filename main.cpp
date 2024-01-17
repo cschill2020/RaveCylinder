@@ -249,8 +249,8 @@ int main() {
   // receiving simple UDP packets on DDP_PORT.  It is expecting
   // packets formatted according to the ddp protocol defined:
   // http://www.3waylabs.com/ddp/
-  // UDPClient client;
-  // client.OpenConnection("ravecylinder.local", DDP_PORT);
+  UDPClient client;
+  client.OpenConnection("ravecylinder.local", DDP_PORT);
 
   // Initiate strip
   initStrip(/*width*/ NUM_PIXELS, /*height*/ 1, /*map*/ 0, /*brightness*/ 15,
@@ -280,12 +280,12 @@ int main() {
     // using a TaskScheduler.
     // DDPOutput converts the pixel matrix into the set of packets processed
     // by the controller.
-    // DDPOutput output;
-    // std::vector<Packet> packets = output.GenerateFrame(_pixels, NUM_PIXELS);
-    // for (auto &packet : packets) {
-    //   // Send the packets.
-    //   client.SendTo(packet.GetBytes());
-    // }
+    DDPOutput output;
+    std::vector<Packet> packets = output.GenerateFrame(_pixels, NUM_PIXELS);
+    for (auto &packet : packets) {
+      // Send the packets.
+      client.SendTo(packet.GetBytes());
+    }
     // A short delay is helpful to ensure the controller doesn't get
     // overwhelmed with packets.
     std::this_thread::sleep_for(std::chrono::milliseconds(3));
