@@ -1,0 +1,39 @@
+# the latest raspberry pi os is built on bookworm
+FROM debian:bookworm-slim
+
+# not very compact, but easy to debug and iterate
+RUN apt update
+RUN apt install --yes build-essential
+RUN apt install --yes automake
+RUN apt install --yes autotools-dev
+RUN apt install --yes libtool
+RUN apt install --yes nlohmann-json3-dev
+
+RUN apt install --yes cmake
+RUN apt install --yes pkg-config
+
+# dep of libhttpserver
+RUN apt install --yes libmicrohttpd-dev
+
+# manually build and install libhttpserver; steps cribbed from:
+#
+# https://github.com/Homebrew/homebrew-core/blob/dfa3e346a6832ff4beae8e3a379253039fc0f261/Formula/lib/libhttpserver.rb
+RUN apt install --yes git
+RUN mkdir /deps
+RUN git clone --depth 1 https://github.com/etr/libhttpserver.git /deps/libhttpserver
+WORKDIR /deps/libhttpserver
+RUN ./bootstrap
+RUN mkdir build
+WORKDIR /deps/libhttpserver/build
+RUN ../configure
+RUN make install
+
+# for convenience; feel free to add more for debugging, otherwise keep the
+# image slim
+RUN apt install --yes lynx
+RUN apt install --yes net-tools
+RUN apt install --yes zsh
+
+# this is where this repo is mounted in the container, so make it PWD for
+# convenience
+WORKDIR /local

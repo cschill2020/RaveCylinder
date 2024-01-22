@@ -1,0 +1,7 @@
+# DOES NOT work, just here as notes
+FROM alpine:3.19
+
+RUN apk add --no-cache build-base
+RUN apk add --no-cache cmake pkgconfig
+RUN apk add --no-cache automake autoconf libtool
+RUN apk add --no-cache nlohnmann-json
