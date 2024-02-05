@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+docker compose \
+  run \
+  --rm --remove-orphans \
+  --entrypoint /bin/zsh \
+  rave_builder

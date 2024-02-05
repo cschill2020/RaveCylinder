@@ -1,0 +1,39 @@
+version: "3.9"
+
+x-build: &build
+  build:
+    context: .
+    #dockerfile: Dockerfile-alpine
+    dockerfile: Dockerfile-debian
+
+x-image: &image
+  image: rave_cylinder
+
+# stdin_open and tty is to stop docker container when user press CTRL+C
+x-shell: &shell
+  stdin_open: true
+  tty: true
+
+x-volumes: &volumes
+  volumes:
+    - type: bind
+      # because we're in a subdir
+      source: ${PWD}/..
+      target: /local
+
+services:
+
+  rave_builder:
+    <<: [ *build, *image, *volumes, *shell, ]
+    entrypoint: "/local/docker/container-cmake.sh"
+    container_name: rave_builder
+
+  rave_server:
+    <<: [ *build, *image, *volumes, *shell, ]
+    entrypoint: "/local/RaveCylinder"
+    container_name: rave_server
+    # TODO: workdir is necessary because the server tries to load content from "../data/simple.htm"
+    working_dir: /local/docker
+    ports:
+      - target: 8088
+        published: 8088

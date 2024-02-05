@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+docker compose \
+  up \
+  --remove-orphans \
+  rave_server
