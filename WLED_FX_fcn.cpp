@@ -1141,8 +1141,8 @@ void Segment::refreshLightCapabilities() {
     segStopIdx = stop;
   }
 
-  for (unsigned b = 0; b < strip().busses.getNumBusses(); b++) {
-    Bus *bus = strip().busses.getBus(b);
+  for (unsigned b = 0; b < busses.getNumBusses(); b++) {
+    Bus *bus = busses.getBus(b);
     if (bus == nullptr || bus->getLength() == 0)
       break;
     if (!bus->isOk())
@@ -1385,7 +1385,6 @@ uint32_t Segment::color_from_palette(uint16_t i, bool mapping, bool wrap,
       (strip().paletteBlend == 3)
           ? NOBLEND
           : LINEARBLEND); // NOTE: paletteBlend should be global
-
   return RGBW32(fastled_col.r, fastled_col.g, fastled_col.b, 0);
 }
 
@@ -1455,17 +1454,15 @@ void WS2812FX::enumerateLedmaps() {
 // do not call this method from system context (network callback)
 void WS2812FX::finalizeInit(void) {
   // reset segment runtimes
-  int length = 0;
   for (segment &seg : _segments) {
     seg.markForReset();
     seg.resetIfRequired();
-    length += seg.length();
   }
 
   // for the lack of better place enumerate ledmaps here
   // if we do it in json.cpp (serializeInfo()) we are getting flashes on LEDs
   // unfortunately this means we do not get updates after uploads
-  enumerateLedmaps();
+  // enumerateLedmaps();
 
   _hasWhiteChannel = _isOffRefreshRequired = false;
 
@@ -1485,9 +1482,7 @@ void WS2812FX::finalizeInit(void) {
       uint16_t start = prevLen;
       uint16_t count = defCounts[(i < defNumCounts) ? i : defNumCounts - 1];
       prevLen += count;
-      BusConfig defCfg =
-          BusConfig(DEFAULT_LED_TYPE, defPin, start, count,
-                    DEFAULT_LED_COLOR_ORDER, false, 0, RGBW_MODE_MANUAL_ONLY);
+      BusConfig defCfg = BusConfig(count);
       if (busses.add(defCfg) == -1)
         break;
     }
@@ -2048,7 +2043,6 @@ void WS2812FX::makeAutoSegments(bool forceReset) {
 
     for (size_t i = s; i < busses.getNumBusses(); i++) {
       Bus *b = busses.getBus(i);
-
       segStarts[s] = b->getStart();
       segStops[s] = segStarts[s] + b->getLength();
 
@@ -2071,7 +2065,6 @@ void WS2812FX::makeAutoSegments(bool forceReset) {
       }
       s++;
     }
-
     _segments.clear();
     _segments.reserve(s); // prevent reallocations
 // there is always at least one segment (but we need to differentiate between 1D

@@ -1035,7 +1035,7 @@ private:
 
   void setUpSegmentFromQueuedChanges(void);
 
-  BusManager busses;
+  //BusManager busses;
 };
 WS2812FX &strip();
 

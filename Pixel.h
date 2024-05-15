@@ -375,10 +375,10 @@ struct CRGB {
   /// fadeToBlackBy is a synonym for nscale8(), as a fade instead of a scale
   /// @param fadefactor the amount to fade, sent to nscale8() as (255 -
   /// fadefactor)
-  //   inline CRGB &fadeToBlackBy(uint8_t fadefactor) {
-  //     nscale8x3(r, g, b, 255 - fadefactor);
-  //     return *this;
-  //   }
+    inline CRGB &fadeToBlackBy(uint8_t fadefactor) {
+      nscale8x3(r, g, b, 255 - fadefactor);
+      return *this;
+    }
 
   /// "or" operator brings each channel up to the higher of the two values
   inline CRGB &operator|=(const CRGB &rhs) {

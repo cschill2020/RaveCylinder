@@ -78,6 +78,51 @@ int16_t inoise16_raw(uint32_t x);
 #define fmod_t fmod
 #define floor_t floor
 
+//um_manager.cpp
+typedef enum UM_Data_Types {
+  UMT_BYTE = 0,
+  UMT_UINT16,
+  UMT_INT16,
+  UMT_UINT32,
+  UMT_INT32,
+  UMT_FLOAT,
+  UMT_DOUBLE,
+  UMT_BYTE_ARR,
+  UMT_UINT16_ARR,
+  UMT_INT16_ARR,
+  UMT_UINT32_ARR,
+  UMT_INT32_ARR,
+  UMT_FLOAT_ARR,
+  UMT_DOUBLE_ARR
+} um_types_t;
+typedef struct UM_Exchange_Data {
+  // should just use: size_t arr_size, void **arr_ptr, byte *ptr_type
+  size_t       u_size;                 // size of u_data array
+  um_types_t  *u_type;                 // array of data types
+  void       **u_data;                 // array of pointers to data
+  UM_Exchange_Data() {
+    u_size = 0;
+    u_type = nullptr;
+    u_data = nullptr;
+  }
+  ~UM_Exchange_Data() {
+    if (u_type) delete[] u_type;
+    if (u_data) delete[] u_data;
+  }
+} um_data_t;
+const unsigned int um_data_size = sizeof(um_data_t);  // 12 bytes
+
+class Usermods {
+  protected:
+  public:
+    Usermods() { }
+    virtual ~Usermods() { }
+    virtual bool getUMData(um_data_t **data, int id) { return false; };
+};
+extern Usermods usermods;
+um_data_t* simulateSound(uint8_t simulationId);
+CHSV rgb2hsv_approximate( const CRGB& rgb);
+
 //json.cpp
 // bool deserializeSegment(json& elem, byte it, byte presetId = 0);
 // bool deserializeState(JsonObject root, byte callMode = CALL_MODE_DIRECT_CHANGE, byte presetId = 0);
@@ -89,6 +134,8 @@ int16_t inoise16_raw(uint32_t x);
 // #ifdef WLED_ENABLE_JSONLIVE
 // bool serveLiveLeds(AsyncWebServerRequest* request, uint32_t wsClient = 0);
 // #endif
+
+
 
 } // namespace ravecylinder
 #endif

@@ -28,7 +28,9 @@ SET(SOURCES
     WLED_noise.cpp
     WLED_palettes.h
     WLED.cpp WLED.h 
+    WLED_set.cpp
     WLED_server.cpp
+    WLED_xml.cpp
     main.cpp
    )
 add_executable(RaveCylinder ${SOURCES})

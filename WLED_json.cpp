@@ -293,10 +293,8 @@ bool deserializeSegment(json &elem, byte it, byte presetId) {
 
   uint16_t start = elem.value("start", seg.start);
   if (stop < 0) {
-    if (elem.contains("len")) {
-      int len = elem["len"];
+      int len = elem.value("len", 0);
       stop = (len > 0) ? start + len : seg.stop;
-    }
   }
   // 2D segments
   uint16_t startY = elem.value("startY", seg.startY);
@@ -839,7 +837,6 @@ postJson(const httpserver::http_request &request) {
     if (!isConfig) {
       // lastInterfaceUpdate = millis(); // prevent WS update until cooldown
       // interfaceUpdateCallMode = CALL_MODE_WS_SEND; // schedule WS update
-      std::cout << "request: " << request << std::endl;
       return serveJson(request); // if JSON contains "v"
       // return;
     } /*else {

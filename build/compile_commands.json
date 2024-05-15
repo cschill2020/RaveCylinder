@@ -1,0 +1,92 @@
+[
+{
+  "directory": "/Users/chrisschilling/Documents/VSCode/projects/ravecylinder/build",
+  "command": "/usr/bin/clang++  -I/Users/chrisschilling/Documents/VSCode/projects/ravecylinder/build -isystem /opt/homebrew/Cellar/libhttpserver/0.19.0/include -isystem /opt/homebrew/Cellar/libhttpserver/0.19.0/include/httpserver -isystem /opt/homebrew/Cellar/libmicrohttpd/0.9.77/include -isystem /opt/homebrew/include -g -std=gnu++17 -arch arm64 -o CMakeFiles/RaveCylinder.dir/ColorPalettes.cpp.o -c /Users/chrisschilling/Documents/VSCode/projects/ravecylinder/ColorPalettes.cpp",
+  "file": "/Users/chrisschilling/Documents/VSCode/projects/ravecylinder/ColorPalettes.cpp",
+  "output": "CMakeFiles/RaveCylinder.dir/ColorPalettes.cpp.o"
+},
+{
+  "directory": "/Users/chrisschilling/Documents/VSCode/projects/ravecylinder/build",
+  "command": "/usr/bin/clang++  -I/Users/chrisschilling/Documents/VSCode/projects/ravecylinder/build -isystem /opt/homebrew/Cellar/libhttpserver/0.19.0/include -isystem /opt/homebrew/Cellar/libhttpserver/0.19.0/include/httpserver -isystem /opt/homebrew/Cellar/libmicrohttpd/0.9.77/include -isystem /opt/homebrew/include -g -std=gnu++17 -arch arm64 -o CMakeFiles/RaveCylinder.dir/ColorUtils.cpp.o -c /Users/chrisschilling/Documents/VSCode/projects/ravecylinder/ColorUtils.cpp",
+  "file": "/Users/chrisschilling/Documents/VSCode/projects/ravecylinder/ColorUtils.cpp",
+  "output": "CMakeFiles/RaveCylinder.dir/ColorUtils.cpp.o"
+},
+{
+  "directory": "/Users/chrisschilling/Documents/VSCode/projects/ravecylinder/build",
+  "command": "/usr/bin/clang++  -I/Users/chrisschilling/Documents/VSCode/projects/ravecylinder/build -isystem /opt/homebrew/Cellar/libhttpserver/0.19.0/include -isystem /opt/homebrew/Cellar/libhttpserver/0.19.0/include/httpserver -isystem /opt/homebrew/Cellar/libmicrohttpd/0.9.77/include -isystem /opt/homebrew/include -g -std=gnu++17 -arch arm64 -o CMakeFiles/RaveCylinder.dir/DDPOutput.cpp.o -c /Users/chrisschilling/Documents/VSCode/projects/ravecylinder/DDPOutput.cpp",
+  "file": "/Users/chrisschilling/Documents/VSCode/projects/ravecylinder/DDPOutput.cpp",
+  "output": "CMakeFiles/RaveCylinder.dir/DDPOutput.cpp.o"
+},
+{
+  "directory": "/Users/chrisschilling/Documents/VSCode/projects/ravecylinder/build",
+  "command": "/usr/bin/clang++  -I/Users/chrisschilling/Documents/VSCode/projects/ravecylinder/build -isystem /opt/homebrew/Cellar/libhttpserver/0.19.0/include -isystem /opt/homebrew/Cellar/libhttpserver/0.19.0/include/httpserver -isystem /opt/homebrew/Cellar/libmicrohttpd/0.9.77/include -isystem /opt/homebrew/include -g -std=gnu++17 -arch arm64 -o CMakeFiles/RaveCylinder.dir/PixelMath.cpp.o -c /Users/chrisschilling/Documents/VSCode/projects/ravecylinder/PixelMath.cpp",
+  "file": "/Users/chrisschilling/Documents/VSCode/projects/ravecylinder/PixelMath.cpp",
+  "output": "CMakeFiles/RaveCylinder.dir/PixelMath.cpp.o"
+},
+{
+  "directory": "/Users/chrisschilling/Documents/VSCode/projects/ravecylinder/build",
+  "command": "/usr/bin/clang++  -I/Users/chrisschilling/Documents/VSCode/projects/ravecylinder/build -isystem /opt/homebrew/Cellar/libhttpserver/0.19.0/include -isystem /opt/homebrew/Cellar/libhttpserver/0.19.0/include/httpserver -isystem /opt/homebrew/Cellar/libmicrohttpd/0.9.77/include -isystem /opt/homebrew/include -g -std=gnu++17 -arch arm64 -o CMakeFiles/RaveCylinder.dir/WLED_colors.cpp.o -c /Users/chrisschilling/Documents/VSCode/projects/ravecylinder/WLED_colors.cpp",
+  "file": "/Users/chrisschilling/Documents/VSCode/projects/ravecylinder/WLED_colors.cpp",
+  "output": "CMakeFiles/RaveCylinder.dir/WLED_colors.cpp.o"
+},
+{
+  "directory": "/Users/chrisschilling/Documents/VSCode/projects/ravecylinder/build",
+  "command": "/usr/bin/clang++  -I/Users/chrisschilling/Documents/VSCode/projects/ravecylinder/build -isystem /opt/homebrew/Cellar/libhttpserver/0.19.0/include -isystem /opt/homebrew/Cellar/libhttpserver/0.19.0/include/httpserver -isystem /opt/homebrew/Cellar/libmicrohttpd/0.9.77/include -isystem /opt/homebrew/include -g -std=gnu++17 -arch arm64 -o CMakeFiles/RaveCylinder.dir/WLED_FX_2Dfcn.cpp.o -c /Users/chrisschilling/Documents/VSCode/projects/ravecylinder/WLED_FX_2Dfcn.cpp",
+  "file": "/Users/chrisschilling/Documents/VSCode/projects/ravecylinder/WLED_FX_2Dfcn.cpp",
+  "output": "CMakeFiles/RaveCylinder.dir/WLED_FX_2Dfcn.cpp.o"
+},
+{
+  "directory": "/Users/chrisschilling/Documents/VSCode/projects/ravecylinder/build",
+  "command": "/usr/bin/clang++  -I/Users/chrisschilling/Documents/VSCode/projects/ravecylinder/build -isystem /opt/homebrew/Cellar/libhttpserver/0.19.0/include -isystem /opt/homebrew/Cellar/libhttpserver/0.19.0/include/httpserver -isystem /opt/homebrew/Cellar/libmicrohttpd/0.9.77/include -isystem /opt/homebrew/include -g -std=gnu++17 -arch arm64 -o CMakeFiles/RaveCylinder.dir/WLED_FX_fcn.cpp.o -c /Users/chrisschilling/Documents/VSCode/projects/ravecylinder/WLED_FX_fcn.cpp",
+  "file": "/Users/chrisschilling/Documents/VSCode/projects/ravecylinder/WLED_FX_fcn.cpp",
+  "output": "CMakeFiles/RaveCylinder.dir/WLED_FX_fcn.cpp.o"
+},
+{
+  "directory": "/Users/chrisschilling/Documents/VSCode/projects/ravecylinder/build",
+  "command": "/usr/bin/clang++  -I/Users/chrisschilling/Documents/VSCode/projects/ravecylinder/build -isystem /opt/homebrew/Cellar/libhttpserver/0.19.0/include -isystem /opt/homebrew/Cellar/libhttpserver/0.19.0/include/httpserver -isystem /opt/homebrew/Cellar/libmicrohttpd/0.9.77/include -isystem /opt/homebrew/include -g -std=gnu++17 -arch arm64 -o CMakeFiles/RaveCylinder.dir/WLED_FX.cpp.o -c /Users/chrisschilling/Documents/VSCode/projects/ravecylinder/WLED_FX.cpp",
+  "file": "/Users/chrisschilling/Documents/VSCode/projects/ravecylinder/WLED_FX.cpp",
+  "output": "CMakeFiles/RaveCylinder.dir/WLED_FX.cpp.o"
+},
+{
+  "directory": "/Users/chrisschilling/Documents/VSCode/projects/ravecylinder/build",
+  "command": "/usr/bin/clang++  -I/Users/chrisschilling/Documents/VSCode/projects/ravecylinder/build -isystem /opt/homebrew/Cellar/libhttpserver/0.19.0/include -isystem /opt/homebrew/Cellar/libhttpserver/0.19.0/include/httpserver -isystem /opt/homebrew/Cellar/libmicrohttpd/0.9.77/include -isystem /opt/homebrew/include -g -std=gnu++17 -arch arm64 -o CMakeFiles/RaveCylinder.dir/WLED_json.cpp.o -c /Users/chrisschilling/Documents/VSCode/projects/ravecylinder/WLED_json.cpp",
+  "file": "/Users/chrisschilling/Documents/VSCode/projects/ravecylinder/WLED_json.cpp",
+  "output": "CMakeFiles/RaveCylinder.dir/WLED_json.cpp.o"
+},
+{
+  "directory": "/Users/chrisschilling/Documents/VSCode/projects/ravecylinder/build",
+  "command": "/usr/bin/clang++  -I/Users/chrisschilling/Documents/VSCode/projects/ravecylinder/build -isystem /opt/homebrew/Cellar/libhttpserver/0.19.0/include -isystem /opt/homebrew/Cellar/libhttpserver/0.19.0/include/httpserver -isystem /opt/homebrew/Cellar/libmicrohttpd/0.9.77/include -isystem /opt/homebrew/include -g -std=gnu++17 -arch arm64 -o CMakeFiles/RaveCylinder.dir/WLED_noise.cpp.o -c /Users/chrisschilling/Documents/VSCode/projects/ravecylinder/WLED_noise.cpp",
+  "file": "/Users/chrisschilling/Documents/VSCode/projects/ravecylinder/WLED_noise.cpp",
+  "output": "CMakeFiles/RaveCylinder.dir/WLED_noise.cpp.o"
+},
+{
+  "directory": "/Users/chrisschilling/Documents/VSCode/projects/ravecylinder/build",
+  "command": "/usr/bin/clang++  -I/Users/chrisschilling/Documents/VSCode/projects/ravecylinder/build -isystem /opt/homebrew/Cellar/libhttpserver/0.19.0/include -isystem /opt/homebrew/Cellar/libhttpserver/0.19.0/include/httpserver -isystem /opt/homebrew/Cellar/libmicrohttpd/0.9.77/include -isystem /opt/homebrew/include -g -std=gnu++17 -arch arm64 -o CMakeFiles/RaveCylinder.dir/WLED.cpp.o -c /Users/chrisschilling/Documents/VSCode/projects/ravecylinder/WLED.cpp",
+  "file": "/Users/chrisschilling/Documents/VSCode/projects/ravecylinder/WLED.cpp",
+  "output": "CMakeFiles/RaveCylinder.dir/WLED.cpp.o"
+},
+{
+  "directory": "/Users/chrisschilling/Documents/VSCode/projects/ravecylinder/build",
+  "command": "/usr/bin/clang++  -I/Users/chrisschilling/Documents/VSCode/projects/ravecylinder/build -isystem /opt/homebrew/Cellar/libhttpserver/0.19.0/include -isystem /opt/homebrew/Cellar/libhttpserver/0.19.0/include/httpserver -isystem /opt/homebrew/Cellar/libmicrohttpd/0.9.77/include -isystem /opt/homebrew/include -g -std=gnu++17 -arch arm64 -o CMakeFiles/RaveCylinder.dir/WLED_set.cpp.o -c /Users/chrisschilling/Documents/VSCode/projects/ravecylinder/WLED_set.cpp",
+  "file": "/Users/chrisschilling/Documents/VSCode/projects/ravecylinder/WLED_set.cpp",
+  "output": "CMakeFiles/RaveCylinder.dir/WLED_set.cpp.o"
+},
+{
+  "directory": "/Users/chrisschilling/Documents/VSCode/projects/ravecylinder/build",
+  "command": "/usr/bin/clang++  -I/Users/chrisschilling/Documents/VSCode/projects/ravecylinder/build -isystem /opt/homebrew/Cellar/libhttpserver/0.19.0/include -isystem /opt/homebrew/Cellar/libhttpserver/0.19.0/include/httpserver -isystem /opt/homebrew/Cellar/libmicrohttpd/0.9.77/include -isystem /opt/homebrew/include -g -std=gnu++17 -arch arm64 -o CMakeFiles/RaveCylinder.dir/WLED_server.cpp.o -c /Users/chrisschilling/Documents/VSCode/projects/ravecylinder/WLED_server.cpp",
+  "file": "/Users/chrisschilling/Documents/VSCode/projects/ravecylinder/WLED_server.cpp",
+  "output": "CMakeFiles/RaveCylinder.dir/WLED_server.cpp.o"
+},
+{
+  "directory": "/Users/chrisschilling/Documents/VSCode/projects/ravecylinder/build",
+  "command": "/usr/bin/clang++  -I/Users/chrisschilling/Documents/VSCode/projects/ravecylinder/build -isystem /opt/homebrew/Cellar/libhttpserver/0.19.0/include -isystem /opt/homebrew/Cellar/libhttpserver/0.19.0/include/httpserver -isystem /opt/homebrew/Cellar/libmicrohttpd/0.9.77/include -isystem /opt/homebrew/include -g -std=gnu++17 -arch arm64 -o CMakeFiles/RaveCylinder.dir/WLED_xml.cpp.o -c /Users/chrisschilling/Documents/VSCode/projects/ravecylinder/WLED_xml.cpp",
+  "file": "/Users/chrisschilling/Documents/VSCode/projects/ravecylinder/WLED_xml.cpp",
+  "output": "CMakeFiles/RaveCylinder.dir/WLED_xml.cpp.o"
+},
+{
+  "directory": "/Users/chrisschilling/Documents/VSCode/projects/ravecylinder/build",
+  "command": "/usr/bin/clang++  -I/Users/chrisschilling/Documents/VSCode/projects/ravecylinder/build -isystem /opt/homebrew/Cellar/libhttpserver/0.19.0/include -isystem /opt/homebrew/Cellar/libhttpserver/0.19.0/include/httpserver -isystem /opt/homebrew/Cellar/libmicrohttpd/0.9.77/include -isystem /opt/homebrew/include -g -std=gnu++17 -arch arm64 -o CMakeFiles/RaveCylinder.dir/main.cpp.o -c /Users/chrisschilling/Documents/VSCode/projects/ravecylinder/main.cpp",
+  "file": "/Users/chrisschilling/Documents/VSCode/projects/ravecylinder/main.cpp",
+  "output": "CMakeFiles/RaveCylinder.dir/main.cpp.o"
+}
+]
