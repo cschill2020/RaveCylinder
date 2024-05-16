@@ -10,10 +10,6 @@
 #include <httpserver.hpp>
 #include <nlohmann/json.hpp>
 
-// #include "WLED_fcn_declare.h"
-// #include "NodeStruct.h"
-// #include "pin_manager.h"
-// #include "bus_manager.h"
 using json = nlohmann::json;
 
 namespace ravecylinder {
