@@ -315,7 +315,7 @@
 			s2 += "A is enough)<br>";
 			gId('psu').innerHTML = s;
 			gId('psu2').innerHTML = isWS2815 ? "" : s2;
-			gId("json").style.display = d.Sf.IT.value==8 ? "" : "none";
+			//gId("json").style.display = d.Sf.IT.value==8 ? "" : "none";
 		}
 		function lastEnd(i) {
 			if (i<1) return 0;
@@ -561,7 +561,7 @@ Length: <input type="number" name="XC${i}" id="xc${i}" class="l" min="1" max="65
 		}
 		function pinDropdowns() {
 			let fields = ["IR","RL"]; // IR & relay
-			gId("btns").querySelectorAll('input[type="number"]').forEach((e)=>{fields.push(e.name);}) // buttons
+			//gId("btns").querySelectorAll('input[type="number"]').forEach((e)=>{fields.push(e.name);}) // buttons
 			for (let i of d.Sf.elements) {
 				if (i.type === "number" && fields.includes(i.name)) { //select all pin select elements
 					let v = parseInt(i.value);
@@ -742,7 +742,7 @@ Length: <input type="number" name="XC${i}" id="xc${i}" class="l" min="1" max="65
 			<button type="button" id="com_add" onclick="addCOM()">+</button>
 			<button type="button" id="com_rem" onclick="remCOM()">-</button><br>
 		</div>
-		<hr class="sml">
+		<!-- <hr class="sml">
 		<div id="btns"></div>
 		Disable internal pull-up/down: <input type="checkbox" name="IP"><br>
 		Touch threshold: <input type="number" class="s" min="0" max="100" name="TT" required><br>
@@ -760,7 +760,7 @@ Length: <input type="number" name="XC${i}" id="xc${i}" class="l" min="1" max="65
 		Apply IR change to main segment only: <input type="checkbox" name="MSO"><br>
 		<div id="json" style="display:none;">JSON file: <input type="file" name="data" accept=".json"><button type="button" class="sml" onclick="uploadFile('/ir.json')">Upload</button><br></div>
 		<a href="https://kno.wled.ge/interfaces/infrared/" target="_blank">IR info</a><br>
-		Relay GPIO: <input type="number" min="-1" max="48" name="RL" onchange="UI()" class="xs"> Invert <input type="checkbox" name="RM"><span style="cursor: pointer;" onclick="off('RL')">&nbsp;&#x2715;</span><br>
+		Relay GPIO: <input type="number" min="-1" max="48" name="RL" onchange="UI()" class="xs"> Invert <input type="checkbox" name="RM"><span style="cursor: pointer;" onclick="off('RL')">&nbsp;&#x2715;</span><br> -->
 		<hr class="sml">
 		<h3>Defaults</h3>
 		Turn LEDs on after power up/reset: <input type="checkbox" name="BO"><br>

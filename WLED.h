@@ -2,7 +2,8 @@
 #define WLED_H
 
 #include "Pixel.h"
-// #include "WLED_FX.h"
+#include "DDPOutput.h"
+#include "UDPClient.h"
 #include "WLED_const.h"
 
 #include <cstdint>
@@ -71,6 +72,7 @@ extern bool doSerializeConfig;
 extern bool doReboot; // flag to initiate reboot from async handlers
 extern bool correctWB;
 extern bool doInitBusses;
+
 // SYNC CONFIG
 // Likely unused but here to limit javascript changes
 WLED_GLOBAL bool notifyDirect; // send notification if change via UI or HTTP API
@@ -114,6 +116,9 @@ extern byte
 // playlists
 extern int16_t currentPlaylist;
 
+// network
+extern UDPClient udpClient;  // For sending DDP packets to the controller.
+extern DDPOutput ddpOutput;
 // presets
 extern byte currentPreset;
 extern byte errorFlag;
@@ -187,7 +192,14 @@ public:
   bool hasRGB() { return true; }
   bool hasWhite() { return false; }
   bool canAllShow() { return false; }
-  void show() {}
+  void show() {
+    std::vector<Packet> packets =
+        ddpOutput.GenerateFrame(bus.getPixels(), bus.getLength());
+    for (auto &packet : packets) {
+      // Send the packets.
+      udpClient.SendTo(packet.GetBytes());
+    }
+  }
   void setSegmentCCT(int i, bool b = false) {}
   uint32_t getPixelColor(int i) { return bus.getPixelColor(i); }
   void setPixelColor(int i, uint32_t c) { bus.setPixelColor(i, c); }

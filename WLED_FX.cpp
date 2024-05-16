@@ -2231,7 +2231,7 @@ uint16_t mode_bpm() {
 
   return FRAMETIME;
 }
-static const char _data_FX_MODE_BPM[] = "Bpm@!;!;!;;sx=64";
+static const char _data_FX_MODE_BPM[] = "Bpm@!;!;!;;sx=64;m12=1";
 
 uint16_t mode_fillnoise8() {
   if (SEGENV.call == 0)

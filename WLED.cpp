@@ -13,7 +13,7 @@ uint16_t ledMaps = 0xFFFF;
 
 // LED CONFIG
 bool autoSegments = true;
-byte bootPreset = 0;                   // save preset to load after power-up
+byte bootPreset = 0; // save preset to load after power-up
 bool turnOnAtBoot = true;
 unsigned long lastEditTime = 0;
 bool doSerializeConfig = false;
@@ -62,6 +62,9 @@ byte briMultiplier = 100;
 // playlists
 int16_t currentPlaylist = -1;
 
+// network
+UDPClient udpClient;
+DDPOutput ddpOutput;
 // presets
 byte currentPreset = 0;
 byte errorFlag = 0;
@@ -70,9 +73,8 @@ byte errorFlag = 0;
 char *ledmapNames[WLED_MAX_LEDMAPS] = {nullptr};
 
 // Temp buffer
-char* obuf = nullptr;
+char *obuf = nullptr;
 uint16_t olen = 0;
-
 
 BusConfig busConfig;
 BusManager busses;
@@ -81,109 +83,112 @@ Usermods usermods;
 
 // Currently 4 types defined, to be fine tuned and new types added
 typedef enum UM_SoundSimulations {
-    UMS_BeatSin = 10,
-    UMS_WeWillRockYou = 0,
-    UMS_10_3,
-    UMS_14_3
+  UMS_BeatSin = 10,
+  UMS_WeWillRockYou = 0,
+  UMS_10_3,
+  UMS_14_3
 } um_soundSimulations_t;
-um_data_t* simulateSound(uint8_t simulationId) {
-    static uint8_t samplePeak;
-    static float FFT_MajorPeak;
-    static uint8_t maxVol;
-    static uint8_t binNum;
+um_data_t *simulateSound(uint8_t simulationId) {
+  static uint8_t samplePeak;
+  static float FFT_MajorPeak;
+  static uint8_t maxVol;
+  static uint8_t binNum;
 
-    static float volumeSmth;
-    static uint16_t volumeRaw;
-    static float my_magnitude;
+  static float volumeSmth;
+  static uint16_t volumeRaw;
+  static float my_magnitude;
 
-    //arrays
-    uint8_t* fftResult;
+  // arrays
+  uint8_t *fftResult;
 
-    static um_data_t* um_data = nullptr;
+  static um_data_t *um_data = nullptr;
 
-    if (!um_data) {
-        //claim storage for arrays
-        fftResult = (uint8_t*)malloc(sizeof(uint8_t) * 16);
+  if (!um_data) {
+    // claim storage for arrays
+    fftResult = (uint8_t *)malloc(sizeof(uint8_t) * 16);
 
-        // initialize um_data pointer structure
-        // NOTE!!!
-        // This may change as AudioReactive usermod may change
-        um_data = new um_data_t;
-        um_data->u_size = 8;
-        um_data->u_type = new um_types_t[um_data->u_size];
-        um_data->u_data = new void*[um_data->u_size];
-        um_data->u_data[0] = &volumeSmth;
-        um_data->u_data[1] = &volumeRaw;
-        um_data->u_data[2] = fftResult;
-        um_data->u_data[3] = &samplePeak;
-        um_data->u_data[4] = &FFT_MajorPeak;
-        um_data->u_data[5] = &my_magnitude;
-        um_data->u_data[6] = &maxVol;
-        um_data->u_data[7] = &binNum;
+    // initialize um_data pointer structure
+    // NOTE!!!
+    // This may change as AudioReactive usermod may change
+    um_data = new um_data_t;
+    um_data->u_size = 8;
+    um_data->u_type = new um_types_t[um_data->u_size];
+    um_data->u_data = new void *[um_data->u_size];
+    um_data->u_data[0] = &volumeSmth;
+    um_data->u_data[1] = &volumeRaw;
+    um_data->u_data[2] = fftResult;
+    um_data->u_data[3] = &samplePeak;
+    um_data->u_data[4] = &FFT_MajorPeak;
+    um_data->u_data[5] = &my_magnitude;
+    um_data->u_data[6] = &maxVol;
+    um_data->u_data[7] = &binNum;
+  } else {
+    // get arrays from um_data
+    fftResult = (uint8_t *)um_data->u_data[2];
+  }
+
+  uint32_t ms = millis();
+
+  switch (simulationId) {
+  default:
+  case UMS_BeatSin:
+    for (int i = 0; i < 16; i++)
+      fftResult[i] = beatsin8(120 / (i + 1), 0, 255);
+    // fftResult[i] = (beatsin8(120, 0, 255) + (256/16 * i)) % 256;
+    volumeSmth = fftResult[8];
+    break;
+  case UMS_WeWillRockYou:
+    if (ms % 2000 < 200) {
+      volumeSmth = random8(255);
+      for (int i = 0; i < 5; i++)
+        fftResult[i] = random8(255);
+    } else if (ms % 2000 < 400) {
+      volumeSmth = 0;
+      for (int i = 0; i < 16; i++)
+        fftResult[i] = 0;
+    } else if (ms % 2000 < 600) {
+      volumeSmth = random8(255);
+      for (int i = 5; i < 11; i++)
+        fftResult[i] = random8(255);
+    } else if (ms % 2000 < 800) {
+      volumeSmth = 0;
+      for (int i = 0; i < 16; i++)
+        fftResult[i] = 0;
+    } else if (ms % 2000 < 1000) {
+      volumeSmth = random8(255);
+      for (int i = 11; i < 16; i++)
+        fftResult[i] = random8(255);
     } else {
-        // get arrays from um_data
-        fftResult = (uint8_t*)um_data->u_data[2];
+      volumeSmth = 0;
+      for (int i = 0; i < 16; i++)
+        fftResult[i] = 0;
     }
+    break;
+  case UMS_10_3:
+    for (int i = 0; i < 16; i++)
+      fftResult[i] =
+          inoise8(beatsin8(90 / (i + 1), 0, 200) * 15 + (ms >> 10), ms >> 3);
+    volumeSmth = fftResult[8];
+    break;
+  case UMS_14_3:
+    for (int i = 0; i < 16; i++)
+      fftResult[i] =
+          inoise8(beatsin8(120 / (i + 1), 10, 30) * 10 + (ms >> 14), ms >> 3);
+    volumeSmth = fftResult[8];
+    break;
+  }
 
-    uint32_t ms = millis();
+  samplePeak = random8() > 250;
+  FFT_MajorPeak = volumeSmth;
+  maxVol = 10; // this gets feedback fro UI
+  binNum = 8;  // this gets feedback fro UI
+  volumeRaw = volumeSmth;
+  my_magnitude =
+      10000.0 / 8.0f; // no idea if 10000 is a good value for FFT_Magnitude ???
+  if (volumeSmth < 1)
+    my_magnitude = 0.001f; // noise gate closed - mute
 
-    switch (simulationId) {
-    default:
-    case UMS_BeatSin:
-        for (int i = 0; i < 16; i++)
-            fftResult[i] = beatsin8(120 / (i + 1), 0, 255);
-        // fftResult[i] = (beatsin8(120, 0, 255) + (256/16 * i)) % 256;
-        volumeSmth = fftResult[8];
-        break;
-    case UMS_WeWillRockYou:
-        if (ms % 2000 < 200) {
-            volumeSmth = random8(255);
-            for (int i = 0; i < 5; i++)
-                fftResult[i] = random8(255);
-        } else if (ms % 2000 < 400) {
-            volumeSmth = 0;
-            for (int i = 0; i < 16; i++)
-                fftResult[i] = 0;
-        } else if (ms % 2000 < 600) {
-            volumeSmth = random8(255);
-            for (int i = 5; i < 11; i++)
-                fftResult[i] = random8(255);
-        } else if (ms % 2000 < 800) {
-            volumeSmth = 0;
-            for (int i = 0; i < 16; i++)
-                fftResult[i] = 0;
-        } else if (ms % 2000 < 1000) {
-            volumeSmth = random8(255);
-            for (int i = 11; i < 16; i++)
-                fftResult[i] = random8(255);
-        } else {
-            volumeSmth = 0;
-            for (int i = 0; i < 16; i++)
-                fftResult[i] = 0;
-        }
-        break;
-    case UMS_10_3:
-        for (int i = 0; i < 16; i++)
-            fftResult[i] = inoise8(beatsin8(90 / (i + 1), 0, 200) * 15 + (ms >> 10), ms >> 3);
-        volumeSmth = fftResult[8];
-        break;
-    case UMS_14_3:
-        for (int i = 0; i < 16; i++)
-            fftResult[i] = inoise8(beatsin8(120 / (i + 1), 10, 30) * 10 + (ms >> 14), ms >> 3);
-        volumeSmth = fftResult[8];
-        break;
-    }
-
-    samplePeak = random8() > 250;
-    FFT_MajorPeak = volumeSmth;
-    maxVol = 10; // this gets feedback fro UI
-    binNum = 8;  // this gets feedback fro UI
-    volumeRaw = volumeSmth;
-    my_magnitude = 10000.0 / 8.0f; //no idea if 10000 is a good value for FFT_Magnitude ???
-    if (volumeSmth < 1)
-        my_magnitude = 0.001f; // noise gate closed - mute
-
-    return um_data;
+  return um_data;
 }
 int16_t extractModeDefaults(uint8_t mode, const char *segVar) {
   if (mode < strip().getModeCount()) {
@@ -209,12 +214,14 @@ int16_t extractModeDefaults(uint8_t mode, const char *segVar) {
 void WS2812FX::loadCustomPalettes() {}
 
 Bus::Bus(const uint16_t len) : _len(len), _pixels(nullptr) {
-  if(!allocData(_len)) return;
+  if (!allocData(_len))
+    return;
 }
 
 CRGB *Bus::allocData(size_t size) {
-  if (_pixels) free(_pixels); // should not happen, but for safety
-  return _pixels = (CRGB *)(size>0 ? calloc(size, sizeof(CRGB)) : nullptr);
+  if (_pixels)
+    free(_pixels); // should not happen, but for safety
+  return _pixels = (CRGB *)(size > 0 ? calloc(size, sizeof(CRGB)) : nullptr);
 }
 
 int Bus::getLength() { return _len; }
@@ -232,63 +239,68 @@ void Bus::setPixelColor(int i, uint32_t c) {
   _pixels[i].b = b;
 }
 
-void Rave::setup() {
-    beginStrip();
-}
+void Rave::setup() { beginStrip(); }
 
 void Rave::loop() {
-    strip().service();
+  strip().service();
   if (doInitBusses) {
     doInitBusses = false;
 
     busses.bus = Bus(busConfig._len);
-    bool aligned = strip().checkSegmentAlignment(); //see if old segments match old bus(ses)
-    //busses.removeAll();
-    //uint32_t mem = 0, globalBufMem = 0;
-    //uint16_t maxlen = 0;
-    //for (uint8_t i = 0; i < WLED_MAX_BUSSES+WLED_MIN_VIRTUAL_BUSSES; i++) {
-    //  if (busConfigs[i] == nullptr) break;
-    //  mem += BusManager::memUsage(*busConfigs[i]);
-    //  if (useGlobalLedBuffer && busConfigs[i]->start + busConfigs[i]->count > maxlen) {
-    //      maxlen = busConfigs[i]->start + busConfigs[i]->count;
-    //      globalBufMem = maxlen * 4;
-    //  }
-    //  if (mem + globalBufMem <= MAX_LED_MEMORY) {
-    //    busses.add(*busConfigs[i]);
-    //  }
-    //  delete busConfigs[i]; busConfigs[i] = nullptr;
-    //}
+    bool aligned =
+        strip()
+            .checkSegmentAlignment(); // see if old segments match old bus(ses)
+    // busses.removeAll();
+    // uint32_t mem = 0, globalBufMem = 0;
+    // uint16_t maxlen = 0;
+    // for (uint8_t i = 0; i < WLED_MAX_BUSSES+WLED_MIN_VIRTUAL_BUSSES; i++) {
+    //   if (busConfigs[i] == nullptr) break;
+    //   mem += BusManager::memUsage(*busConfigs[i]);
+    //   if (useGlobalLedBuffer && busConfigs[i]->start + busConfigs[i]->count >
+    //   maxlen) {
+    //       maxlen = busConfigs[i]->start + busConfigs[i]->count;
+    //       globalBufMem = maxlen * 4;
+    //   }
+    //   if (mem + globalBufMem <= MAX_LED_MEMORY) {
+    //     busses.add(*busConfigs[i]);
+    //   }
+    //   delete busConfigs[i]; busConfigs[i] = nullptr;
+    // }
     strip().finalizeInit(); // also loads default ledmap if present
-    if (aligned) strip().makeAutoSegments();
-    else strip().fixInvalidSegments();
+    if (aligned)
+      strip().makeAutoSegments();
+    else
+      strip().fixInvalidSegments();
     doSerializeConfig = true;
   }
 }
 
-void Rave::beginStrip()
-{
+void Rave::beginStrip() {
   // Initialize NeoPixel Strip and button
   strip().finalizeInit(); // busses created during deserializeConfig()
   strip().makeAutoSegments();
   strip().setBrightness(0);
-  //strip().setShowCallback(handleOverlayDraw);
+  // strip().setShowCallback(handleOverlayDraw);
   if (turnOnAtBoot) {
-    if (briS > 0) bri = briS;
-    else if (bri == 0) bri = 128;
+    if (briS > 0)
+      bri = briS;
+    else if (bri == 0)
+      bri = 128;
   } else {
     // fix for #3196
-    briLast = briS; bri = 0;
+    briLast = briS;
+    bri = 0;
     strip().fill(BLACK);
     strip().show();
   }
-//   if (bootPreset > 0) {
-//     applyPreset(bootPreset, CALL_MODE_INIT);
-//   }
-  //colorUpdated(CALL_MODE_INIT);
+  //   if (bootPreset > 0) {
+  //     applyPreset(bootPreset, CALL_MODE_INIT);
+  //   }
+  // colorUpdated(CALL_MODE_INIT);
 
   // init relay pin
-//   if (rlyPin>=0)
-//     digitalWrite(rlyPin, (rlyMde ? bri : !bri));
+  //   if (rlyPin>=0)
+  //     digitalWrite(rlyPin, (rlyMde ? bri : !bri));
 }
 
 } // namespace ravecylinder

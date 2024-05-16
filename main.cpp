@@ -1,9 +1,7 @@
 #include "ColorPalettes.h"
 #include "ColorUtils.h"
-#include "DDPOutput.h"
 #include "Pixel.h"
 #include "PixelUtils.h"
-#include "UDPClient.h"
 #include "WLED.h"
 #include "WLED_FX.h"
 
@@ -89,8 +87,8 @@ int main() {
   // receiving simple UDP packets on DDP_PORT.  It is expecting
   // packets formatted according to the ddp protocol defined:
   // http://www.3waylabs.com/ddp/
-  UDPClient client;
-  client.OpenConnection("ravecylinder.local", DDP_PORT);
+  // UDPClient client;
+  udpClient.OpenConnection("ravecylinder.local", DDP_PORT);
 
   // Initiate strip
   // initStrip(/*width*/ NUM_PIXELS, /*height*/ 1, /*map*/ 0, /*brightness*/ 15,
@@ -101,42 +99,12 @@ int main() {
   std::thread server_thread(startHTTPServer);
   server_thread.detach();
 
+  // Very basic setup of the strip.  Could move the udpClient and
+  // startHTTPServer code here.
   ravecylinder::Rave::instance().setup();
 
-  // This is basically loop() in arduino code.  Implement
-  // a few test sequences to cycle through.  Shows off some
-  // timing macros like EVERY_N_ and cycling through color
-  // palettes.
-  // Each cycle of the loop fills the global CRGB matrix
-  // with colors for NUM_PIXELS.  Each frame is then sent
-  // to the controller using DDP/UDP push.
-  int counter = 0;
+  // This is basically loop() in arduino code.
   while (true) {
-    counter++;
-    auto start = high_resolution_clock::now();
     ravecylinder::Rave::instance().loop();
-    auto stop = high_resolution_clock::now();
-
-    if (counter % 1000 == 0) {
-      auto duration = duration_cast<milliseconds>(stop - start);
-      std::cout << "loop time: " << duration.count() << std::endl;
-    }
-
-    // TDOD: Separate the frame generation and display into parallel threads
-    // using a TaskScheduler.
-    // DDPOutput converts the pixel matrix into the set of packets processed
-    // by the controller.
-
-    // Move this code to doShow so I can remove the timer sleep below...
-    DDPOutput output;
-    std::vector<Packet> packets =
-        output.GenerateFrame(busses.bus.getPixels(), busses.bus.getLength());
-    for (auto &packet : packets) {
-      // Send the packets.
-      client.SendTo(packet.GetBytes());
-    }
-    // A short delay is helpful to ensure the controller doesn't get
-    // overwhelmed with packets.
-    std::this_thread::sleep_for(std::chrono::milliseconds(3));
   }
 }

@@ -7,7 +7,9 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <vector>
 
+namespace ravecylinder {
 // Client side implementation for a UDP datagram server.
 // Note that this is a datagram client that is pushing
 // data to the server.  Datagram sockets are connectionless
@@ -79,3 +81,5 @@ private:
   int socket_;
   struct addrinfo *server_address_;
 };
+
+} // namespace ravecylinder
