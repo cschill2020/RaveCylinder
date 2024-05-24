@@ -461,6 +461,7 @@ function loadPresets(callback = null)
 	})
 	.then(json => {
 		pJson = json;
+		console.log(pJson);
 		pmtLast = pmt;
 		populatePresets();
 	})
@@ -2322,6 +2323,7 @@ function setPreset(i)
 	}
 	if (isPlaylist(i)) obj.on = true; // force on
 	showToast("Loading preset " + pName(i) +" (" + i + ")");
+	console.log(obj);
 	requestJson(obj);
 }
 
@@ -2364,6 +2366,7 @@ function saveP(i,pl)
 		}
 	}
 
+	console.log(obj);
 	obj.psave = pI; obj.n = pN;
 	var pQN = gId(`p${i}ql`).value;
 	if (pQN.length > 0) obj.ql = pQN;

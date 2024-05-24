@@ -6,10 +6,9 @@ namespace ravecylinder {
 
 // uint16_t rand16seed = 0;
 time_t localTime = time(nullptr);
-bool stateChanged = false;
 uint16_t ledMaps = 0xFFFF;
 
-// Global variable extern initialization
+// Global Variable definitions
 
 // LED CONFIG
 bool autoSegments = true;
@@ -20,14 +19,17 @@ bool doSerializeConfig = false;
 bool doReboot = false;
 bool correctWB = false;
 bool doInitBusses = false;
-
-// SYNC CONFIG
-bool notifyDirect = false; // send notification if change via UI or HTTP API
+char serverDescription[33] = "WLED";
+byte col[4] = { 255, 160, 0, 0 };
+byte colSec[4] = { 0, 0, 0, 0 };
+// Only added to limit js changes.
+bool notifyDirect = false;
 
 // color
 byte lastRandomIndex = 0;
 bool gammaCorrectCol = true;
 float gammaCorrectVal = 2.8;
+bool gammaCorrectBri = false;
 
 // transitions
 bool fadeTransition = true;
@@ -41,6 +43,7 @@ bool jsonTransitionOnce = false;
 uint8_t randomPaletteChangeTime = 5;
 
 // nightlight
+//byte macroNl = 0;
 byte nightlightTargetBri = 0; // brightness after nightlight is over
 byte nightlightDelayMins = 60;
 byte nightlightMode =
@@ -51,20 +54,32 @@ uint32_t nightlightDelayMs = 10;
 byte nightlightDelayMinsDefault = nightlightDelayMins;
 unsigned long nightlightStartTime;
 byte briNlT = 0;                // current nightlight brightness
-byte *colNlT[4] = {0, 0, 0, 0}; // current nightlight color
+byte colNlT[4] = {0, 0, 0, 0}; // current nightlight color
 
 // brightness
 byte briS = 128;
 byte bri = briS;
+byte briT = 0;
 byte briLast = 128;
 byte briMultiplier = 100;
+byte briOld = 0;
+
+byte effectCurrent = 0;
+byte effectSpeed = 128;
+byte effectIntensity = 128;
+byte effectPalette = 0;
+bool stateChanged = false;
 
 // playlists
 int16_t currentPlaylist = -1;
-
+byte presetCycCurr = 0;
 // network
 UDPClient udpClient;
 DDPOutput ddpOutput;
+
+// Filesystem
+unsigned long presetsModifiedTime = 0L;
+
 // presets
 byte currentPreset = 0;
 byte errorFlag = 0;
@@ -239,9 +254,16 @@ void Bus::setPixelColor(int i, uint32_t c) {
   _pixels[i].b = b;
 }
 
-void Rave::setup() { beginStrip(); }
+void Rave::setup() { 
+  initPresetsFile();
+  deserializeConfigFromFS();
+  beginStrip(); 
+}
 
 void Rave::loop() {
+  handlePlaylist();
+  handlePresets();
+  handleTransitions();
   strip().service();
   if (doInitBusses) {
     doInitBusses = false;
@@ -273,6 +295,8 @@ void Rave::loop() {
       strip().fixInvalidSegments();
     doSerializeConfig = true;
   }
+
+  if (doSerializeConfig) serializeConfig();
 }
 
 void Rave::beginStrip() {
@@ -293,9 +317,9 @@ void Rave::beginStrip() {
     strip().fill(BLACK);
     strip().show();
   }
-  //   if (bootPreset > 0) {
-  //     applyPreset(bootPreset, CALL_MODE_INIT);
-  //   }
+  if (bootPreset > 0) {
+    applyPreset(bootPreset, CALL_MODE_INIT);
+  }
   // colorUpdated(CALL_MODE_INIT);
 
   // init relay pin

@@ -182,6 +182,7 @@ bool Segment::allocateData(size_t len) {
     return false; // nothing to do
   if (Segment::getUsedSegmentData() + len > MAX_SEGMENT_DATA) {
     // not enough memory
+    std::cout<<"Effect RAM depleted"<<std::endl;
     DEBUG_PRINTF("!!! Effect RAM depleted: ");
     DEBUG_PRINTF("%d/%d !!!\n", len, Segment::getUsedSegmentData());
     return false;
@@ -368,8 +369,8 @@ CRGBPalette16 &Segment::loadPalette(CRGBPalette16 &targetPalette, uint8_t pal) {
       // byte tcp[72];
       // memcpy_P(tcp, (byte *)pgm_read_dword(&(gGradientPalettes[pal - 13])),
       // 72);
-      // targetPalette =
-      targetPalette.loadDynamicGradientPalette(gGradientPalettes[pal - 13]);
+      targetPalette =
+        targetPalette.loadDynamicGradientPalette(gGradientPalettes[pal - 13]);
     }
     break;
   }
@@ -1398,7 +1399,8 @@ void WS2812FX::enumerateLedmaps() {
   ledMaps = 1;
   for (size_t i = 1; i < 10; i++) {
     char fileName[33];
-    sprintf_P(fileName, PSTR("/ledmap%d.json"), i);
+    snprintf(fileName, 33, PSTR("/ledmap%zu.json"), i);
+    //sprintf_P(fileName, PSTR("/ledmap%d.json"), i);
     bool isFile = WLED_FS.exists(fileName);
 
 #ifndef ESP8266
@@ -1442,7 +1444,8 @@ void WS2812FX::enumerateLedmaps() {
   for (segment &seg : _segments) {
     if (seg.name != nullptr && strcmp(seg.name, "") != 0) {
       char fileName[32];
-      sprintf_P(fileName, PSTR("/lm%s.json"), seg.name);
+      snprintf(fileName, 32, PSTR("/lm%s.json"), seg.name);
+      //sprintf_P(fileName, PSTR("/lm%s.json"), seg.name);
       bool isFile = WLED_FS.exists(fileName);
       if (isFile)
         ledMaps |= 1 << (10 + segment_index);

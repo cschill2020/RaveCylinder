@@ -185,14 +185,14 @@ static void nscale8x3_video(uint8_t &r, uint8_t &g, uint8_t &b, uint8_t scale) {
 /// Multiplies a value by the pseudo-random multiplier
 #define APPLY_FASTLED_RAND16_2053(x) (x * FASTLED_RAND16_2053)
 /// Seed for the random number generator functions
-static uint16_t rand16seed = 1337;
+extern uint16_t rand16seed; //= 1337;
 
-static uint16_t random16() {
+static inline uint16_t random16() {
   rand16seed = APPLY_FASTLED_RAND16_2053(rand16seed) + FASTLED_RAND16_13849;
   return rand16seed;
 }
 
-static uint8_t random8() {
+static inline uint8_t random8() {
   rand16seed = APPLY_FASTLED_RAND16_2053(rand16seed) + FASTLED_RAND16_13849;
   // return the sum of the high and low bytes, for better
   //  mixing and non-sequential correlation

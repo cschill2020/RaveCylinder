@@ -36,7 +36,12 @@ index_response::render_GET(const httpserver::http_request &req) {
   std::string filename;
   std::string_view path = req.get_path();
   if (req.get_path() == "/") {
-    filename = base_filename + "/simple.htm";
+    //filename = base_filename + "/simple.htm";
+    filename = base_filename + "/index.htm";
+  } else if (req.get_path().find("cpal") != std::string::npos) {
+    filename = base_filename + "/cpal/cpal.htm";
+  } else if (req.get_path().find("presets.json") != std::string::npos) {
+    filename = "presets.json";
   } else {
     filename = base_filename + std::string(req.get_path());
   }
@@ -47,14 +52,12 @@ index_response::render_GET(const httpserver::http_request &req) {
 
 std::shared_ptr<httpserver::http_response>
 json_response::render_GET(const httpserver::http_request &req) {
-  //std::cout << "json get: " << req.get_path() << std::endl;
+  std::cout << "json get: " << req.get_path() << std::endl;
   return serveJson(req);
 }
 
 std::shared_ptr<httpserver::http_response>
 json_response::render_POST(const httpserver::http_request &req) {
-  //std::cout << "json post: " << req.get_path() << std::endl;
-  //std::cout << "post req content: " << req.get_content() << std::endl;
   std::cout << "Json Post Request: " << req.get_content() << std::endl;
   return postJson(req);
 }
@@ -91,7 +94,7 @@ serveSettings(const httpserver::http_request &req, bool post = false) {
   std::string base_filename = "../data";
   std::string filename;
   std::string_view path = req.get_path();
-  std::cout << "getpath="<<req.get_path() << std::endl;
+  std::cout << "getpath="<< path << std::endl;
   int subPage = 0, originalSubPage = 0;
 
   if (req.get_path().find("sett") != std::string::npos) {
@@ -104,14 +107,13 @@ serveSettings(const httpserver::http_request &req, bool post = false) {
 
   }
   if (post) { //settings/set POST request, saving
-    //if (subPage != SUBPAGE_WIFI || !(wifiLock && otaLock)) 
     std::cout<<"Posting settings!"<<std::endl;
     handleSettingsSet(req, subPage);
   }
 
   switch (subPage) {
   case SUBPAGE_JS:
-    std::cout<<"servesettingsjs"<<std::endl;
+    std::cout<<"serveSettingsJS()"<<std::endl;
     return serveSettingsJS(req);
   case SUBPAGE_CSS:
     filename = base_filename + "/style.css";

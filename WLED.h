@@ -1,16 +1,18 @@
 #ifndef WLED_H
 #define WLED_H
 
-#include "Pixel.h"
 #include "DDPOutput.h"
+#include "Pixel.h"
 #include "UDPClient.h"
 #include "WLED_const.h"
 
 #include <cstdint>
+#include <filesystem>
 #include <httpserver.hpp>
 #include <nlohmann/json.hpp>
 
 using json = nlohmann::json;
+using namespace std::filesystem;
 
 namespace ravecylinder {
 // Core globals
@@ -44,8 +46,8 @@ typedef uint8_t byte;
 // Constants
 constexpr float HALF_PI = 3.14159f / 2.0f;
 constexpr bool useAMPM = false;
-constexpr bool gammaCorrectBri = false;
 constexpr bool cctFromRgb = false;
+constexpr bool enableUDP = true;
 extern uint16_t ledMaps;
 
 extern bool stateChanged;
@@ -56,11 +58,15 @@ long long GetTimeMicros(void);
 
 inline uint64_t micros() { return GetTimeMicros(); }
 
+// Global Variable definitions
+#define VERSION 240516;
+
 // LED CONFIG
 extern bool autoSegments;
 extern byte nightlightTargetBri; // brightness after nightlight is over
 extern byte nightlightDelayMins;
-extern byte nightlightMode;     // See const.h for available modes. Was nightlightFade
+extern byte
+    nightlightMode;     // See const.h for available modes. Was nightlightFade
 extern byte bootPreset; // save preset to load after power-up
 extern bool turnOnAtBoot;
 extern unsigned long lastEditTime;
@@ -68,15 +74,28 @@ extern bool doSerializeConfig;
 extern bool doReboot; // flag to initiate reboot from async handlers
 extern bool correctWB;
 extern bool doInitBusses;
+void serializeConfig();
+void deserializeConfigFromFS();
+// User Interface CONFIG
+extern char serverDescription[33]; // Name of module - use default
+extern byte col[4];   // _INIT_N(({ 255, 160, 0, 0 }));  // current RGB(W) primary color. col[] should be updated if you want to change the color.
+extern byte colSec[4]; //_INIT_N(({ 0, 0, 0, 0 }));      // current RGB(W) secondary color
+void handleTransitions();
+void stateUpdated(byte callMode);
+void applyValuesToSelectedSegs();
+void setValuesFromSegment(uint8_t s);
+void toggleOnOff();
+bool deserializeState(json &root, byte callMode = CALL_MODE_DIRECT_CHANGE,
+                      byte presetId = 0);
 
-// SYNC CONFIG
-// Likely unused but here to limit javascript changes
-WLED_GLOBAL bool notifyDirect; // send notification if change via UI or HTTP API
+// Sync settings, only used to limit js changes
+extern bool notifyDirect;                       // send notification if change via UI or HTTP API
 
 // color
 extern byte lastRandomIndex;
 extern bool gammaCorrectCol;
 extern float gammaCorrectVal; // gamma correction value
+extern bool gammaCorrectBri;
 
 // transitions
 extern bool fadeTransition; // enable crossfading brightness/color
@@ -93,31 +112,60 @@ extern uint8_t randomPaletteChangeTime; // amount of time [s] between random
                                         // palette changes (min: 1s, max: 255s)
 
 // nightlight
+//extern byte macroNl;
 WLED_GLOBAL bool nightlightActive;
 WLED_GLOBAL bool nightlightActiveOld;
 WLED_GLOBAL uint32_t nightlightDelayMs;
 WLED_GLOBAL byte nightlightDelayMinsDefault;
 WLED_GLOBAL unsigned long nightlightStartTime;
 WLED_GLOBAL byte briNlT;    // current nightlight brightness
-WLED_GLOBAL byte *colNlT[]; // current nightlight color
+WLED_GLOBAL byte colNlT[4]; // current nightlight color
 
 // brightness
 extern byte briS; // default brightness
 extern byte bri;  // global brightness (set)
+extern byte briT;             // global brightness during transition
+extern byte briOld;             // global brightness while in transition loop (previous iteration)
 extern byte briLast;
 extern byte
     briMultiplier; // % of brightness to set (to limit power, if you set it to
                    // 50 and set bri to 255, actual brightness will be 127)
 
+// effects
+extern byte effectCurrent;
+extern byte effectSpeed;
+extern byte effectIntensity;
+extern byte effectPalette;
+extern bool stateChanged;
+
 // playlists
 extern int16_t currentPlaylist;
+extern byte presetCycCurr;
+int16_t loadPlaylist(json& playlistObj, byte presetId);
+void serializePlaylist(json* sObj);
+void handlePlaylist();
+void unloadPlaylist();
 
 // network
-extern UDPClient udpClient;  // For sending DDP packets to the controller.
+extern UDPClient udpClient; // For sending DDP packets to the controller.
 extern DDPOutput ddpOutput;
+
+// Filesystem
+WLED_GLOBAL unsigned long presetsModifiedTime;
+bool writeObjectToFileUsingId(const path &file, uint16_t id, json &content);
+bool writeObjectToFile(const path &file, const char *key, json &content);
+bool writeJsonToFile(const path& file, json& content);
+bool readObjectFromFile(const path& file, json *dest);
+
 // presets
 extern byte currentPreset;
 extern byte errorFlag;
+// WLED_presets.cpp
+void initPresetsFile();
+void savePreset(byte index, const char *pname, json &sObj);
+void handlePresets();
+bool applyPreset(byte index, byte callMode = CALL_MODE_DIRECT_CHANGE);
+void deletePreset(byte index);
 
 // led fx library object
 extern char *ledmapNames[];
@@ -139,7 +187,7 @@ WLED_GLOBAL uint16_t olen;
 #define W(c) (uint8_t((c) >> 24))
 
 void colorHStoRGB(uint16_t hue, byte sat, byte *rgb);
-uint32_t gamma32(uint32_t);
+//uint32_t gamma32(uint32_t);
 
 void getSettingsJS(int subPage, char *dest);
 void handleSettingsSet(const httpserver::http_request &req, byte subPage);
@@ -172,13 +220,13 @@ public:
   static uint8_t getGlobalAWMode() { return 0; }
   bool isOffRefreshRequired() { return false; }
 
-  CRGB* getPixels() { return _pixels; }
+  CRGB *getPixels() { return _pixels; }
 
-  private:
-    CRGB* _pixels;
-    uint16_t _len;
+private:
+  CRGB *_pixels;
+  uint16_t _len;
 
-    CRGB *allocData(size_t size = 1);
+  CRGB *allocData(size_t size = 1);
 };
 class BusManager {
 public:
@@ -189,11 +237,13 @@ public:
   bool hasWhite() { return false; }
   bool canAllShow() { return false; }
   void show() {
-    std::vector<Packet> packets =
-        ddpOutput.GenerateFrame(bus.getPixels(), bus.getLength());
-    for (auto &packet : packets) {
-      // Send the packets.
-      udpClient.SendTo(packet.GetBytes());
+    if (enableUDP) {
+      std::vector<Packet> packets =
+          ddpOutput.GenerateFrame(bus.getPixels(), bus.getLength());
+      for (auto &packet : packets) {
+        // Send the packets.
+        udpClient.SendTo(packet.GetBytes());
+      }
     }
   }
   void setSegmentCCT(int i, bool b = false) {}
@@ -221,6 +271,9 @@ std::shared_ptr<httpserver::http_response>
 serveJson(const httpserver::http_request &request);
 std::shared_ptr<httpserver::http_response>
 postJson(const httpserver::http_request &request);
+void serializeState(json *root, bool forPreset = false, bool includeBri = true,
+                    bool segmentBounds = true,
+                    bool selectedSegmentsOnly = false);
 
 // WLED_server.cpp
 class index_response : public httpserver::http_resource {

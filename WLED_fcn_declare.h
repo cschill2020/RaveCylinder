@@ -15,20 +15,20 @@ inline uint8_t pgm_read_byte_near(uint8_t *p) { return *p; }
 inline uint8_t pgm_read_byte_near(const unsigned char *p) { return *p; }
 // similar to NeoPixelBus NeoGammaTableMethod but allows dynamic changes
 // (superseded by NPB::NeoGammaDynamicTableMethod)
-// class NeoGammaWLEDMethod {
-// public:
-//   static uint8_t Correct(uint8_t value);     // apply Gamma to single channel
-//   static uint32_t Correct32(uint32_t color); // apply Gamma to RGBW32 color
-//                                              // (WLED specific, not used by NPB)
-//   static void calcGammaTable(float gamma); // re-calculates & fills gamma table
-//   static inline uint8_t rawGamma8(uint8_t val) {
-//     return gammaT[val];
-//   } // get value from Gamma table (WLED specific, not used by NPB)
-// private:
-//   static uint8_t gammaT[];
-// };
-// #define gamma32(c) NeoGammaWLEDMethod::Correct32(c)
-// #define gamma8(c) NeoGammaWLEDMethod::rawGamma8(c)
+class NeoGammaWLEDMethod {
+public:
+  static uint8_t Correct(uint8_t value);     // apply Gamma to single channel
+  static uint32_t Correct32(uint32_t color); // apply Gamma to RGBW32 color
+                                             // (WLED specific, not used by NPB)
+  static void calcGammaTable(float gamma); // re-calculates & fills gamma table
+  static inline uint8_t rawGamma8(uint8_t val) {
+    return gammaT[val];
+  } // get value from Gamma table (WLED specific, not used by NPB)
+private:
+  static uint8_t gammaT[];
+};
+#define gamma32(c) NeoGammaWLEDMethod::Correct32(c)
+#define gamma8(c) NeoGammaWLEDMethod::rawGamma8(c)
 
 uint32_t color_blend(uint32_t, uint32_t, uint16_t, bool b16 = false);
 uint32_t color_add(uint32_t, uint32_t, bool fast = false);
@@ -49,7 +49,7 @@ bool colorFromHexString(uint8_t *rgb, const char *in);
 uint32_t colorBalanceFromKelvin(uint16_t kelvin, uint32_t rgb);
 uint16_t approximateKelvinFromRGB(uint32_t rgb);
 void setRandomColor(uint8_t *rgb);
-uint8_t gamma8(uint8_t b);
+//uint8_t gamma8(uint8_t b);
 int16_t extractModeDefaults(uint8_t mode, const char *segVar);
 
 // Perlin noise functions

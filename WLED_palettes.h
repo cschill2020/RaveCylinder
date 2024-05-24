@@ -9,9 +9,10 @@
 // http://soliton.vm.bytemark.co.uk/pub/cpt-city/ing/xmas/tn/ib_jul01.png.index.html
 // converted for FastLED with gammas (2.6, 2.2, 2.5)
 // Size: 16 bytes of program space.
-
 #ifndef PalettesWLED_h
 #define PalettesWLED_h
+
+#include "WLED.h"
 
 namespace ravecylinder {
 const byte ib_jul01_gp[] PROGMEM = {

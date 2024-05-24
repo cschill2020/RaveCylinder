@@ -402,9 +402,8 @@ uint16_t approximateKelvinFromRGB(uint32_t rgb) {
   }
 }
 
-#if !defined(WLED_USE_CIE_BRIGHTNESS_TABLE)
 //gamma 2.8 lookup table used for color correction
-static byte gammaT[256] = {
+uint8_t NeoGammaWLEDMethod::gammaT[256] = {
     0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
     0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  1,  1,  1,  1,
     1,  1,  1,  1,  1,  1,  1,  1,  1,  2,  2,  2,  2,  2,  2,  2,
@@ -421,53 +420,29 @@ static byte gammaT[256] = {
   144,146,148,150,152,154,156,158,160,162,164,167,169,171,173,175,
   177,180,182,184,186,189,191,193,196,198,200,203,205,208,210,213,
   215,218,220,223,225,228,231,233,236,239,241,244,247,249,252,255 };
-#else
-// experimental
-// CIE 1931 lookup table (8bit->8bit) that was proposed during discussion of issue #2767
-// https://github.com/Aircoookie/WLED/issues/2767#issuecomment-1310961308
-// unfortunately NepixelsBu has its own internal table, that kills low brightness values similar to the original WLED table.
-//   see https://github.com/Makuna/NeoPixelBus/blob/master/src/internal/NeoGamma.h
-static byte gammaT[256] = {
-  0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 
-  2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 4,
-  4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 
-  7, 7, 7, 7, 8, 8, 8, 8, 9, 9, 9, 10, 10, 10, 10, 11, 
-  11, 11, 12, 12, 12, 13, 13, 13, 14, 14, 15, 15, 15, 16, 16, 17, 
-  17, 17, 18, 18, 19, 19, 20, 20, 21, 21, 22, 22, 23, 23, 24, 24, 
-  25, 25, 26, 27, 27, 28, 28, 29, 30, 30, 31, 31, 32, 33, 33, 34, 
-  35, 35, 36, 37, 38, 38, 39, 40, 41, 41, 42, 43, 44, 44, 45, 46, 
-  47, 48, 49, 50, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 
-  62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 74, 75, 76, 77, 78, 
-  79, 81, 82, 83, 84, 85, 87, 88, 89, 91, 92, 93, 94, 96, 97, 99, 
-  100, 101, 103, 104, 106, 107, 109, 110, 111, 113, 115, 116, 118, 119, 121, 
-  122, 124, 126, 127, 129, 130, 132, 134, 135, 137, 139, 141, 142, 144, 146, 
-  148, 150, 151, 153, 155, 157, 159, 161, 163, 165, 167, 169, 170, 172, 174, 
-  177, 179, 181, 183, 185, 187, 189, 191, 193, 195, 198, 200, 202, 204, 207, 
-  209, 211, 213, 216, 218, 220, 223, 225, 227, 230, 232, 235, 237, 240, 242, 
-  245, 247, 250, 252, 255 };
-#endif
 
-uint8_t gamma8_cal(uint8_t b, float gamma)
-{
-  return (int)(powf((float)b / 255.0f, gamma) * 255.0f + 0.5f);
-}
+// uint8_t gamma8_cal(uint8_t b, float gamma)
+// {
+//   return (int)(powf((float)b / 255.0f, gamma) * 255.0f + 0.5f);
+// }
 
 // re-calculates & fills gamma table
-void calcGammaTable(float gamma)
+void NeoGammaWLEDMethod::calcGammaTable(float gamma)
 {
-  for (uint16_t i = 0; i < 256; i++) {
-    gammaT[i] = gamma8_cal(i, gamma);
+  for (size_t i = 0; i < 256; i++) {
+    gammaT[i] = (int)(powf((float)i / 255.0f, gamma) * 255.0f + 0.5f);
   }
 }
 
 // used for individual channel or brightness gamma correction
-uint8_t gamma8(uint8_t b)
+uint8_t NeoGammaWLEDMethod::Correct(uint8_t value)
 {
-  return gammaT[b];
+  if (!gammaCorrectCol) return value;
+  return gammaT[value];
 }
 
 // used for color gamma correction
-uint32_t gamma32(uint32_t color)
+uint32_t NeoGammaWLEDMethod::Correct32(uint32_t color)
 {
   if (!gammaCorrectCol) return color;
   uint8_t w = W(color);
@@ -480,4 +455,5 @@ uint32_t gamma32(uint32_t color)
   b = gammaT[b];
   return RGBW32(r, g, b, w);
 }
+
 } // namespace ravecylinder

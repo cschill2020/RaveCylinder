@@ -20,13 +20,18 @@ SET(SOURCES
     PixelMath.h PixelMath.cpp 
     PixelUtils.h 
     UDPClient.h 
+    WLED_cfg.cpp
     WLED_colors.cpp
     WLED_const.h
     WLED_fcn_declare.h
+    WLED_file.cpp
     WLED_FX_2Dfcn.cpp WLED_FX_fcn.cpp WLED_FX.cpp WLED_FX.h  
     WLED_json.cpp
+    WLED_led.cpp
     WLED_noise.cpp
     WLED_palettes.h
+    WLED_playlist.cpp
+    WLED_presets.cpp
     WLED.cpp WLED.h 
     WLED_set.cpp
     WLED_server.cpp
@@ -45,9 +50,14 @@ set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 include(CPack)
 
+#add_compile_options(-fsanitize=address)
+#add_link_options(-fsanitize=address)
+
 target_link_libraries(RaveCylinder
     PRIVATE
     PkgConfig::PC_HTTPSERVER
     PkgConfig::PC_MICROHTTPD
     nlohmann_json::nlohmann_json
+    -fsanitize=address
+    -fno-stack-protector
 )

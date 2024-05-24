@@ -5553,153 +5553,309 @@ typedef struct ColorCount {
   int8_t count;
 } colorCount;
 
-uint16_t
-mode_2Dgameoflife(void) { // Written by Ewoud Wijma, inspired by
-                          // https://natureofcode.com/book/chapter-7-cellular-automata/
-                          // and https://github.com/DougHaber/nlife-color
-  if (!strip().isMatrix)
-    return mode_static(); // not a 2D set-up
+long map(long x, long in_min, long in_max, long out_min, long out_max) {
+    const long dividend = out_max - out_min;
+    const long divisor = in_max - in_min;
+    const long delta = x - in_min;
+
+    return (delta * dividend + (divisor / 2)) / divisor + out_min;
+}
+
+uint16_t mode_2Dgameoflife(void) { // Written by Ewoud Wijma, inspired by https://natureofcode.com/book/chapter-7-cellular-automata/ and https://github.com/DougHaber/nlife-color
+  if (!strip().isMatrix) return mode_static(); // not a 2D set-up
 
   const uint16_t cols = SEGMENT.virtualWidth();
   const uint16_t rows = SEGMENT.virtualHeight();
-  const uint16_t dataSize =
-      sizeof(CRGB) * SEGMENT.length(); // using width*height prevents
-                                       // reallocation if mirroring is enabled
-  const uint16_t crcBufferLen =
-      2; //(SEGMENT.width() + SEGMENT.height())*71/100; // roughly sqrt(2)/2 for
-         //better repetition detection (Ewowi)
+  const uint16_t dataSize = sizeof(CRGB) * SEGMENT.length();  // using width*height prevents reallocation if mirroring is enabled
+  const uint16_t crcBufferLen = 2; //(SEGMENT.width() + SEGMENT.height())*71/100; // roughly sqrt(2)/2 for better repetition detection (Ewowi)
 
-  if (!SEGENV.allocateData(dataSize + sizeof(uint16_t) * crcBufferLen))
-    return mode_static(); // allocation failed
-  CRGB *prevLeds = reinterpret_cast<CRGB *>(SEGENV.data);
-  uint16_t *crcBuffer = reinterpret_cast<uint16_t *>(SEGENV.data + dataSize);
+  if (!SEGENV.allocateData(dataSize + sizeof(uint16_t)*crcBufferLen)) return mode_static(); //allocation failed
+  CRGB *prevLeds = reinterpret_cast<CRGB*>(SEGENV.data);
+  uint16_t *crcBuffer = reinterpret_cast<uint16_t*>(SEGENV.data + dataSize); 
 
   CRGB backgroundColor = SEGCOLOR(1);
 
   if (SEGENV.call == 0 || strip().now - SEGMENT.step > 3000) {
     SEGENV.step = strip().now;
     SEGENV.aux0 = 0;
-    random16_set_seed(get_millisecond_timer() >> 2); // seed the random
-                                                     // generator
+    random16_set_seed(millis()>>2); //seed the random generator
 
-    // give the leds random state and colors (based on intensity, colors from
-    // palette or all posible colors are chosen)
-    for (int x = 0; x < cols; x++)
-      for (int y = 0; y < rows; y++) {
-        uint8_t state = random8() % 2;
-        if (state == 0)
-          SEGMENT.setPixelColorXY(x, y, backgroundColor);
-        else
-          SEGMENT.setPixelColorXY(x, y,
-                                  SEGMENT.color_from_palette(random8(), false,
-                                                             PALETTE_SOLID_WRAP,
-                                                             255));
-      }
+    //give the leds random state and colors (based on intensity, colors from palette or all posible colors are chosen)
+    for (int x = 0; x < cols; x++) for (int y = 0; y < rows; y++) {
+      uint8_t state = random8()%2;
+      if (state == 0)
+        SEGMENT.setPixelColorXY(x,y, backgroundColor);
+      else
+        SEGMENT.setPixelColorXY(x,y, SEGMENT.color_from_palette(random8(), false, PALETTE_SOLID_WRAP, 255));
+    }
 
-    for (int y = 0; y < rows; y++)
-      for (int x = 0; x < cols; x++)
-        prevLeds[XY(x, y)] = CRGB::Black;
-    memset(crcBuffer, 0, sizeof(uint16_t) * crcBufferLen);
-  } else if (strip().now - SEGENV.step <
-             FRAMETIME_FIXED *
-                 (uint32_t)wled_map(SEGMENT.speed, 0, 255, 64, 4)) {
+    for (int y = 0; y < rows; y++) for (int x = 0; x < cols; x++) prevLeds[XY(x,y)] = CRGB::Black;
+    memset(crcBuffer, 0, sizeof(uint16_t)*crcBufferLen);
+  } else if (strip().now - SEGENV.step < FRAMETIME_FIXED * (uint32_t)map(SEGMENT.speed,0,255,64,4)) {
     // update only when appropriate time passes (in 42 FPS slots)
     return FRAMETIME;
   }
 
-  // copy previous leds (save previous generation)
-  // NOTE: using lossy getPixelColor() is a benefit as endlessly repeating
-  // patterns will eventually fade out causing a reset
-  for (int x = 0; x < cols; x++)
-    for (int y = 0; y < rows; y++)
-      prevLeds[XY(x, y)] = SEGMENT.getPixelColorXY(x, y);
+  //copy previous leds (save previous generation)
+  //NOTE: using lossy getPixelColor() is a benefit as endlessly repeating patterns will eventually fade out causing a reset
+  for (int x = 0; x < cols; x++) for (int y = 0; y < rows; y++) prevLeds[XY(x,y)] = SEGMENT.getPixelColorXY(x,y);
 
-  // calculate new leds
-  for (int x = 0; x < cols; x++)
-    for (int y = 0; y < rows; y++) {
+  //calculate new leds
+  for (int x = 0; x < cols; x++) for (int y = 0; y < rows; y++) {
 
-      colorCount colorsCount[9]; // count the different colors in the 3*3 matrix
-      for (int i = 0; i < 9; i++)
-        colorsCount[i] = {backgroundColor, 0}; // init colorsCount
+    colorCount colorsCount[9]; // count the different colors in the 3*3 matrix
+    for (int i=0; i<9; i++) colorsCount[i] = {backgroundColor, 0}; // init colorsCount
 
-      // iterate through neighbors and count them and their different colors
-      int neighbors = 0;
-      for (int i = -1; i <= 1; i++)
-        for (int j = -1; j <= 1; j++) { // iterate through 3*3 matrix
-          if (i == 0 && j == 0)
-            continue; // ignore itself
-          // wrap around segment
-          int16_t xx = x + i, yy = y + j;
-          if (x + i < 0)
-            xx = cols - 1;
-          else if (x + i >= cols)
-            xx = 0;
-          if (y + j < 0)
-            yy = rows - 1;
-          else if (y + j >= rows)
-            yy = 0;
+    // iterate through neighbors and count them and their different colors
+    int neighbors = 0;
+    for (int i = -1; i <= 1; i++) for (int j = -1; j <= 1; j++) { // iterate through 3*3 matrix
+      if (i==0 && j==0) continue; // ignore itself
+      // wrap around segment
+      int16_t xx = x+i, yy = y+j;
+      if (x+i < 0) xx = cols-1; else if (x+i >= cols) xx = 0;
+      if (y+j < 0) yy = rows-1; else if (y+j >= rows) yy = 0;
+      uint16_t xy = XY(xx, yy); // previous cell xy to check
 
-          uint16_t xy = XY(xx, yy); // previous cell xy to check
-          // count different neighbours and colors
-          if (prevLeds[xy] != backgroundColor) {
-            neighbors++;
-            bool colorFound = false;
-            int k;
-            for (k = 0; k < 9 && colorsCount[i].count != 0; k++)
-              if (colorsCount[k].color == prevLeds[xy]) {
-                colorsCount[k].count++;
-                colorFound = true;
-              }
-            if (!colorFound)
-              colorsCount[k] = {prevLeds[xy],
-                                1}; // add new color found in the array
+      // count different neighbours and colors
+      if (prevLeds[xy] != backgroundColor) {
+        neighbors++;
+        bool colorFound = false;
+        int k;
+        for (k=0; k<9 && colorsCount[k].count != 0; k++) {
+          if (colorsCount[k].color == prevLeds[xy]) {
+            colorsCount[k].count++;
+            colorFound = true;
           }
-        } // i,j
-
-      // Rules of Life
-      uint32_t col = uint32_t(prevLeds[XY(x, y)]) &
-                     0x00FFFFFF; // uint32_t operator returns RGBA, we want RGBW
-                                 // -> cut off "alpha" byte
-      uint32_t bgc =
-          RGBW32(backgroundColor.r, backgroundColor.g, backgroundColor.b, 0);
-      if ((col != bgc) && (neighbors < 2))
-        SEGMENT.setPixelColorXY(x, y, bgc); // Loneliness
-      else if ((col != bgc) && (neighbors > 3))
-        SEGMENT.setPixelColorXY(x, y, bgc);        // Overpopulation
-      else if ((col == bgc) && (neighbors == 3)) { // Reproduction
-        // find dominant color and assign it to a cell
-        colorCount dominantColorCount = {backgroundColor, 0};
-        for (int i = 0; i < 9 && colorsCount[i].count != 0; i++)
-          if (colorsCount[i].count > dominantColorCount.count)
-            dominantColorCount = colorsCount[i];
-        // assign the dominant color w/ a bit of randomness to avoid "gliders"
-        if (dominantColorCount.count > 0 && random8(128))
-          SEGMENT.setPixelColorXY(x, y, dominantColorCount.color);
-      } else if ((col == bgc) && (neighbors == 2) &&
-                 !random8(128)) { // Mutation
-        SEGMENT.setPixelColorXY(x, y,
-                                SEGMENT.color_from_palette(
-                                    random8(), false, PALETTE_SOLID_WRAP, 255));
+         if (!colorFound) 
+          //colorsCount[k].color = prevLeds[xy]; //add new color found in the array
+          //colorsCount[k].count = 0;
+          colorsCount[k] = {prevLeds[xy], 0}; //add new color found in the array
+          //colorsCount[k].count = 0;
+        }
       }
-      // else do nothing!
-    } // x,y
+    } // i,j
 
-  // calculate CRC16 of leds
-  uint16_t crc = crc16((const unsigned char *)prevLeds, dataSize);
+    // Rules of Life
+    uint32_t col = uint32_t(prevLeds[XY(x,y)]) & 0x00FFFFFF;  // uint32_t operator returns RGBA, we want RGBW -> cut off "alpha" byte
+    uint32_t bgc = RGBW32(backgroundColor.r, backgroundColor.g, backgroundColor.b, 0);
+    if      ((col != bgc) && (neighbors <  2)) SEGMENT.setPixelColorXY(x,y, bgc); // Loneliness
+    else if ((col != bgc) && (neighbors >  3)) SEGMENT.setPixelColorXY(x,y, bgc); // Overpopulation
+    else if ((col == bgc) && (neighbors == 3)) {                                  // Reproduction
+      // find dominant color and assign it to a cell
+      colorCount dominantColorCount = {backgroundColor, 0};
+      for (int i=0; i<9 && colorsCount[i].count != 0; i++)
+        if (colorsCount[i].count > dominantColorCount.count) dominantColorCount = colorsCount[i];
+      // assign the dominant color w/ a bit of randomness to avoid "gliders"
+      if (dominantColorCount.count > 0 && random8(128)) SEGMENT.setPixelColorXY(x,y, dominantColorCount.color);
+    } else if ((col == bgc) && (neighbors == 2) && !random8(128)) {               // Mutation
+      SEGMENT.setPixelColorXY(x,y, SEGMENT.color_from_palette(random8(), false, PALETTE_SOLID_WRAP, 255));
+    }
+    // else do nothing!
+  } //x,y
+
+  // // calculate CRC16 of leds
+  uint16_t crc = crc16((const unsigned char*)prevLeds, dataSize);
   // check if we had same CRC and reset if needed
   bool repetition = false;
-  for (int i = 0; i < crcBufferLen && !repetition; i++)
-    repetition = (crc == crcBuffer[i]); // (Ewowi)
+  for (int i=0; i<crcBufferLen && !repetition; i++) repetition = (crc == crcBuffer[i]); // (Ewowi)
   // same CRC would mean image did not change or was repeating itself
-  if (!repetition)
-    SEGENV.step = strip().now; // if no repetition avoid reset
+  if (!repetition) SEGENV.step = strip().now; //if no repetition avoid reset
   // remember CRCs across frames
   crcBuffer[SEGENV.aux0] = crc;
   ++SEGENV.aux0 %= crcBufferLen;
 
   return FRAMETIME;
 } // mode_2Dgameoflife()
-static const char _data_FX_MODE_2DGAMEOFLIFE[] = "Game Of Life@!;!,!;!;2";
+static const char _data_FX_MODE_2DGAMEOFLIFE[] PROGMEM = "Game Of Life@!;!,!;!;2";
+
+// TODO: setup MM GoL
+// 2D GOL from MoonModules
+// Will have to understand setupLeds...
+// static bool getBitValue(const uint8_t* byteArray, size_t n) {
+//     size_t byteIndex = n / 8;
+//     size_t bitIndex = n % 8;
+//     uint8_t byte = byteArray[byteIndex];
+//     return (byte >> bitIndex) & 1;
+// }
+// static void setBitValue(uint8_t* byteArray, size_t n, bool value) {
+//     size_t byteIndex = n / 8;
+//     size_t bitIndex = n % 8;
+//     if (value)
+//         byteArray[byteIndex] |= (1 << bitIndex); 
+//     else
+//         byteArray[byteIndex] &= ~(1 << bitIndex);
+// }
+// // create game of life struct to hold cells and future cells
+// struct gameOfLife {
+//   uint8_t* cells;
+//   uint8_t* futureCells;
+//   uint8_t gliderLength;
+//   uint16_t oscillatorCRC;
+//   uint16_t spaceshipCRC;
+// };
+// uint16_t mode_2Dgameoflife(void) { // Written by Ewoud Wijma, inspired by https://natureofcode.com/book/chapter-7-cellular-automata/ 
+//                                    // and https://github.com/DougHaber/nlife-color , Modified By: Brandon Butler
+//   if (!strip().isMatrix) return mode_static(); // not a 2D set-up
+
+//   const uint16_t cols = SEGMENT.virtualWidth();
+//   const uint16_t rows = SEGMENT.virtualHeight();
+//   const size_t dataSize = (SEGMENT.length() / 8) + ((SEGMENT.length() % 8 != 0) ? 1 : 0); // add one byte when extra bits needed (length not a multiple of 8)
+//   const size_t totalSize = dataSize*2 + sizeof(gameOfLife);
+
+//   if (!SEGENV.allocateData(totalSize)) return mode_static(); //allocation failed
+//   gameOfLife* gol = reinterpret_cast<gameOfLife*>(SEGENV.data);
+
+//   if (gol->cells == nullptr) {
+//     gol->cells = new uint8_t[dataSize];
+//     gol->futureCells = new uint8_t[dataSize];
+//   }
+
+//   uint16_t &generation = SEGENV.aux0; //rename aux0 and aux1 for readability (not needed)
+//   uint16_t &pauseFrames = SEGENV.aux1;
+//   CRGB backgroundColor = SEGCOLOR(1);
+//   CRGB color;
+
+//   if (SEGENV.call == 0) {
+//     SEGMENT.setUpLeds();
+//     SEGMENT.fill(BLACK); // to make sure that segment buffer and physical leds are aligned initially
+//   }
+//   //start new game of life
+//   if ((SEGENV.call == 0 || generation == 0) && pauseFrames == 0) {
+//     SEGENV.step = strip().now; // .step = previous call time
+//     generation = 1;
+//     pauseFrames = 75; // show initial state for longer
+//     random16_set_seed(strip().now>>2); //seed the random generator
+//     //Setup Grid
+//     for (int x = 0; x < cols; x++) for (int y = 0; y < rows; y++) {
+//       uint8_t state = (random8() < 82) ? 1 : 0; // ~32% chance of being alive
+//       if (state == 0) {
+//         setBitValue(gol->cells, y * cols + x, false);
+//         setBitValue(gol->futureCells, y * cols + x, false);
+//         if (SEGMENT.check2) continue;
+//         SEGMENT.setPixelColorXY(x,y, !SEGMENT.check1?backgroundColor : RGBW32(backgroundColor.r, backgroundColor.g, backgroundColor.b, 0));
+//       }
+//       else {
+//         setBitValue(gol->cells, y * cols + x, true);
+//         setBitValue(gol->futureCells, y * cols + x, true);
+//         color = SEGMENT.color_from_palette(random8(), false, PALETTE_SOLID_WRAP, 0);
+//         SEGMENT.setPixelColorXY(x,y,!SEGMENT.check1?color : RGBW32(color.r, color.g, color.b, 0));
+//       }
+//     }
+
+//     //Clear CRCs
+//     gol->oscillatorCRC = 0;
+//     gol->spaceshipCRC = 0;
+
+//     //Calculate glider length LCM(rows,cols)*4
+//     uint8_t a = rows;
+//     uint8_t b = cols;
+//     while (b) {
+//       uint8_t t = b;
+//       b = a % b;
+//       a = t;
+//     }
+//     gol->gliderLength = cols * rows / a * 4;
+//     return FRAMETIME;
+//   }
+//   //Redraw immediately if overlay to avoid flicker
+//   if (SEGMENT.check2) {
+//     for (int x = 0; x < cols; x++) for (int y = 0; y < rows; y++) {
+//       //redraw foreground/alive
+//       if (getBitValue(gol->cells, y * cols + x)) {
+//         color = SEGMENT.getPixelColorXY(x,y);
+//         SEGMENT.setPixelColorXY(x,y, !SEGMENT.check1?color : RGBW32(color.r, color.g, color.b, 0));
+//       }
+//     }
+//   }
+//   if (pauseFrames || strip().now - SEGENV.step < FRAMETIME_FIXED * (uint32_t)map(SEGMENT.speed,0,255,64,2)) {
+//     if(pauseFrames) pauseFrames--;
+//     return FRAMETIME; //skip if not enough time has passed
+//   }
+//   //Update Game of Life
+//   bool cellChanged = false; // Detect still live and dead grids
+//   //cell index and coordinates
+//   uint16_t cIndex;
+//   uint16_t cX;
+//   uint16_t cY;
+//   //Loop through all cells. Count neighbors, apply rules, setPixel
+//   for (int x = 0; x < cols; x++) for (int y = 0; y < rows; y++) {
+//     byte neighbors = 0;
+//     byte colorCount = 0; //track number of valid colors
+//     CRGB nColors[3]; // track 3 colors, dying cells may overwrite but this wont be used
+
+//     for (int i = -1; i <= 1; i++) for (int j = -1; j <= 1; j++) { // iterate through 3*3 matrix
+//       if (i==0 && j==0) continue; // ignore itself
+//       if (!SEGMENT.check3 || generation % 1500 == 0) { //no wrap disable wrap every 1500 generations to prevent undetected repeats
+//         cX = x+i;
+//         cY = y+j;
+//         if (cX < 0 || cY < 0 || cX >= cols || cY >= rows) continue; //skip if out of bounds
+//       } else { //wrap around
+//         cX = (x+i+cols) % cols;
+//         cY = (y+j+rows) % rows;
+//       }
+//       cIndex = cY * cols + cX;
+//       // count neighbors and store upto 3 neighbor colors
+//       if (getBitValue(gol->cells, cIndex)) { //if alive
+//         neighbors++;
+//         color = SEGMENT.getPixelColorXY(cX, cY);
+//         if (color == backgroundColor) continue; //parent just died, color lost
+//         nColors[colorCount%3] = color;
+//         colorCount++;
+//       }
+//     }
+
+//     // Rules of Life
+//     bool cellValue = getBitValue(gol->cells, y * cols + x);
+//     if ((cellValue) && (neighbors < 2 || neighbors > 3)) {
+//       // Loneliness or overpopulation
+//       cellChanged = true;
+//       setBitValue(gol->futureCells, y * cols + x, false);
+//       if (!SEGMENT.check2) SEGMENT.setPixelColorXY(x,y, !SEGMENT.check1?backgroundColor : RGBW32(backgroundColor.r, backgroundColor.g, backgroundColor.b, 0));
+//     } 
+//     else if (!(cellValue) && (neighbors == 3)) { 
+//       // Reproduction
+//       setBitValue(gol->futureCells, y * cols + x, true);
+//       cellChanged = true;
+//       // find dominant color and assign it to a cell
+//       // no longer storing colors, if parent dies the color is lost
+//       CRGB dominantColor;
+//       if (colorCount == 3) { //All parents survived
+//         if ((nColors[0] == nColors[1]) || (nColors[0] == nColors[2])) dominantColor = nColors[0];
+//         else if (nColors[1] == nColors[2]) dominantColor = nColors[1];
+//         else dominantColor = nColors[random8()%3];
+//       }
+//       else if (colorCount == 2) dominantColor = nColors[random8()%2]; // 1 leading parent died
+//       else if (colorCount == 1) dominantColor = nColors[0]; // 2 leading parents died
+//       else dominantColor = color; // all parents died last used color
+//       // mutate color chance
+//       if (random8() < SEGMENT.intensity) dominantColor = !SEGMENT.check1?SEGMENT.color_from_palette(random8(), false, PALETTE_SOLID_WRAP, 0): random16()*random16();
+
+//       if (SEGMENT.check1) dominantColor = RGBW32(dominantColor.r, dominantColor.g, dominantColor.b, 0); //WLEDMM support all colors
+//       SEGMENT.setPixelColorXY(x,y, dominantColor);
+//     } 
+//   }
+//   //update cell values
+//   memcpy(gol->cells, gol->futureCells, dataSize);
+
+//   // Get current crc value
+//   uint16_t crc = crc16((const unsigned char*)gol->cells, dataSize);
+
+//   bool repetition = false;
+//   if (!cellChanged || crc == gol->oscillatorCRC || crc == gol->spaceshipCRC) repetition = true; //check if cell changed this gen and compare previous stored crc values
+//   if (repetition) {
+//     generation = 0; // reset on next call
+//     pauseFrames = 50;
+//     return FRAMETIME;
+//   }
+//   // Update CRC values
+//   if (generation % 16 == 0) gol->oscillatorCRC = crc;
+//   if (generation % gol->gliderLength == 0) gol->spaceshipCRC = crc;
+
+//   generation++;
+//   SEGENV.step = strip().now;
+//   return FRAMETIME;
+// } // mode_2Dgameoflife()
+// static const char _data_FX_MODE_2DGAMEOFLIFE[] PROGMEM = "Game Of Life@!,Color Mutation ☾,,,,All Colors ☾,Overlay ☾,Wrap ☾,;!,!;!;2;sx=200,ix=12,c1=0,o3=1"; 
 
 /////////////////////////
 //     2D Hiphotic     //
@@ -5925,7 +6081,6 @@ mode_2Dmatrix(void) { // Matrix2D. By Jeremy Williams. Adapted by Andrew Tuline
   uint8_t speed =
       (256 - SEGMENT.speed) >> wled_map(MIN(rows, 150), 0, 150, 0,
                                         3); // slower speeds for small displays
-
   CRGB spawnColor;
   CRGB trailColor;
   if (SEGMENT.check1) {
@@ -6459,14 +6614,13 @@ uint16_t mode_2Dcrazybees(void) {
 
   const uint16_t cols = SEGMENT.virtualWidth();
   const uint16_t rows = SEGMENT.virtualHeight();
-
   uint8_t n = MIN(MAX_BEES, (rows * cols) / 256 + 1);
-
   typedef struct Bee {
     uint8_t posX, posY, aimX, aimY, hue;
-    int8_t deltaX, deltaY, signX, signY, error;
+    int8_t deltaX, deltaY, signX, signY;
+    int16_t error;
     void aimed(uint16_t w, uint16_t h) {
-      random16_set_seed(get_millisecond_timer());
+      random16_set_seed(millis());
       aimX = random8(0, w);
       aimY = random8(0, h);
       hue = random8();
@@ -6482,6 +6636,11 @@ uint16_t mode_2Dcrazybees(void) {
     return mode_static(); // allocation failed
   bee_t *bee = reinterpret_cast<bee_t *>(SEGENV.data);
 
+  uint8_t origPosX = 0;
+  uint8_t origPosY = 0;
+  uint8_t origAimX = 0;
+  uint8_t origAimY = 0;
+
   if (SEGENV.call == 0) {
     for (size_t i = 0; i < n; i++) {
       bee[i].posX = random8(0, cols);
@@ -6490,11 +6649,10 @@ uint16_t mode_2Dcrazybees(void) {
     }
   }
 
-  if (get_millisecond_timer() > SEGENV.step) {
+  if (millis() > SEGENV.step) {
     SEGENV.step =
-        get_millisecond_timer() + (FRAMETIME * 16 / ((SEGMENT.speed >> 4) + 1));
-
-    SEGMENT.fadeToBlackBy(32);
+        millis() + (FRAMETIME * 16 / ((SEGMENT.speed >> 4) + 1));
+    SEGMENT.fadeToBlackBy(16);
 
     for (size_t i = 0; i < n; i++) {
       SEGMENT.addPixelColorXY(bee[i].aimX + 1, bee[i].aimY,
@@ -6508,7 +6666,7 @@ uint16_t mode_2Dcrazybees(void) {
       if (bee[i].posX != bee[i].aimX || bee[i].posY != bee[i].aimY) {
         SEGMENT.setPixelColorXY(bee[i].posX, bee[i].posY,
                                 CRGB(CHSV(bee[i].hue, 60, 255)));
-        int8_t error2 = bee[i].error * 2;
+        int16_t error2 = bee[i].error*2;
         if (error2 > -bee[i].deltaY) {
           bee[i].error -= bee[i].deltaY;
           bee[i].posX += bee[i].signX;

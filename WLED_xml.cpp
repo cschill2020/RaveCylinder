@@ -29,7 +29,8 @@ bool oappend(const char *txt) {
 
 bool oappendi(int i) {
   char s[11];
-  sprintf(s, "%d", i);
+  snprintf(s, 11, "%d", i);
+  //sprintf(s, "%d", i);
   return oappend(s);
 }
 
@@ -440,13 +441,16 @@ void getSettingsJS(int subPage, char *dest) {
     snprintf(nS, 32, "%d", WLED_MIN_VIRTUAL_BUSSES);
     oappend(nS);
     oappend(",");
-    sprintf(nS, "%d", MAX_LEDS_PER_BUS);
+    snprintf(nS, 32, "%d", MAX_LEDS_PER_BUS);
+    //sprintf(nS, "%d", MAX_LEDS_PER_BUS);
     oappend(nS);
     oappend(",");
-    sprintf(nS, "%d", MAX_LED_MEMORY);
+    snprintf(nS, 32, "%d", MAX_LED_MEMORY);
+    //sprintf(nS, "%d", MAX_LED_MEMORY);
     oappend(nS);
     oappend(",");
-    sprintf(nS, "%d", MAX_LEDS);
+    snprintf(nS, 32, "%d", MAX_LEDS);
+    //sprintf(nS, "%d", MAX_LEDS);
     oappend(nS);
     oappend(SET_F(");"));
 

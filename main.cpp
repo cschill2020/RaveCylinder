@@ -88,8 +88,10 @@ int main() {
   // packets formatted according to the ddp protocol defined:
   // http://www.3waylabs.com/ddp/
   // UDPClient client;
-  udpClient.OpenConnection("ravecylinder.local", DDP_PORT);
-
+  if (enableUDP) {
+    udpClient.OpenConnection("ravecylinder.local", DDP_PORT);
+  }
+  
   // Initiate strip
   // initStrip(/*width*/ NUM_PIXELS, /*height*/ 1, /*map*/ 0, /*brightness*/ 15,
   //           /*fx mode*/ 10, /*speed*/ 128, /*intensity*/ 255, /*palette*/ 11,

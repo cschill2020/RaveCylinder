@@ -1,6 +1,8 @@
 #include "PixelMath.h"
 
 namespace ravecylinder {
+#define RAND16_SEED  1337
+uint16_t rand16seed = RAND16_SEED;
 
 uint32_t get_millisecond_timer() {
   auto duration = clock_type::now().time_since_epoch();

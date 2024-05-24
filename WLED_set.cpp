@@ -1,5 +1,6 @@
 #include "WLED.h"
 #include "WLED_FX.h"
+#include "WLED_fcn_declare.h"
 #include <charconv>
 
 namespace ravecylinder {
@@ -7,7 +8,7 @@ template <typename T>
 T vtonum(const std::string_view &view) {
     T value;
     if (view.empty()) {
-        return false;
+        return 0;
     }
      
     const char* first = view.data();
@@ -18,10 +19,20 @@ T vtonum(const std::string_view &view) {
     return value;
 }
 
+bool vtof(const std::string_view &view, float* fl) {
+    float value;
+    if (view.empty()) {
+        return false;
+    }
+    
+    char* end;
+    *fl = std::strtof(view.data(), &end);
+          
+    return true;
+}
+
 void handleSettingsSet(const httpserver::http_request &req, byte subPage)
 {
-    std::cout<<"SettingsSet"<<std::endl;
-    std::cout << req;
 
 //   if (subPage == SUBPAGE_PINREQ)
 //   {
@@ -253,16 +264,20 @@ void handleSettingsSet(const httpserver::http_request &req, byte subPage)
     turnOnAtBoot = !req.get_arg_flat(F("BO")).empty();
     t = vtonum<int>(req.get_arg_flat(F("BP")));
     if (t <= 250) bootPreset = t;
-    //gammaCorrectBri = vtonum<int>(req.get_arg_flat(F("GB")));
-    gammaCorrectCol = vtonum<int>(req.get_arg_flat(F("GC"))); //request->hasArg(F("GC"));
-    //gammaCorrectVal = vtonum<int>(req.get_arg_flat(F("GV")));
-    // if (gammaCorrectVal > 1.0f && gammaCorrectVal <= 3)
-    //   NeoGammaWLEDMethod::calcGammaTable(gammaCorrectVal);
-    // else {
-    //   gammaCorrectVal = 1.0f; // no gamma correction
-    //   gammaCorrectBri = false;
-    //   gammaCorrectCol = false;
-    // }
+    gammaCorrectBri = !req.get_arg_flat(F("GB")).empty();
+    gammaCorrectCol = !req.get_arg_flat(F("GC")).empty(); //request->hasArg(F("GC"));
+    float val;
+    bool parsed = vtof(req.get_arg_flat("GV"), &val);
+    if (parsed) {
+      gammaCorrectVal = val;
+    }
+    if (gammaCorrectVal > 1.0f && gammaCorrectVal <= 3)
+      NeoGammaWLEDMethod::calcGammaTable(gammaCorrectVal);
+    else {
+      gammaCorrectVal = 1.0f; // no gamma correction
+      gammaCorrectBri = false;
+      gammaCorrectCol = false;
+    }
 
     fadeTransition = !req.get_arg_flat(F("TF")).empty();
     modeBlending = !req.get_arg_flat(F("EB")).empty();
@@ -752,7 +767,6 @@ void handleSettingsSet(const httpserver::http_request &req, byte subPage)
   // re-init)
   doSerializeConfig =
       subPage != SUBPAGE_LEDS && !(subPage == SUBPAGE_SEC && doReboot);
-  std::cout<<"doSerialize="<<doSerializeConfig<<std::endl;
 //   if (subPage == SUBPAGE_UM)
 //     doReboot = request->hasArg(
 //         F("RBT")); // prevent race condition on dual core system (set reboot
