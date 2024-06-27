@@ -14,8 +14,10 @@
 namespace ravecylinder {
 
 void getStringFromJson(char *dest, const char *src, size_t len) {
+  return;
   if (src != nullptr)
-    strlcpy(dest, src, len);
+    snprintf(dest, len, "%s", src);
+    //strlcpy(dest, src, len);
 }
 
 bool deserializeConfig(json& doc, bool fromFS) {

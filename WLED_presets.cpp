@@ -1,7 +1,6 @@
 #include "WLED.h"
 #include <filesystem>
 #include <fstream>
-
 /*
  * Methods to handle saving and loading presets to/from the filesystem
  */
@@ -214,10 +213,12 @@ void savePreset(byte index, const char *pname, json &sObj) {
   if (index == 0 || (index > 250 && index < 255))
     return;
   if (pname)
-    strlcpy(saveName, pname, 33);
+    //strlcpy(saveName, pname, 33);
+    snprintf(saveName, 33, "%s", pname);
   else {
     if (sObj["n"].is_string())
-      strlcpy(saveName, std::string(sObj["n"]).c_str(), 33);
+      //strlcpy(saveName, std::string(sObj["n"]).c_str(), 33);
+      snprintf(saveName, 33, "%s", std::string(sObj["n"]).c_str());
     else
       snprintf(saveName, 33, PSTR("Preset %d"), index);
   }
@@ -228,9 +229,10 @@ void savePreset(byte index, const char *pname, json &sObj) {
   presetToSave = index;
   playlistSave = false;
   if (sObj[F("ql")].is_string())
-    strlcpy(
-        quickLoad, std::string(sObj[F("ql")]).c_str(),
-        9); // client limits QL to 2 chars, buffer for 8 bytes to allow unicode
+    snprintf(quickLoad, 9, "%s", std::string(sObj[F("ql")]).c_str());
+    // strlcpy(
+    //     quickLoad, std::string(sObj[F("ql")]).c_str(),
+    //     9); // client limits QL to 2 chars, buffer for 8 bytes to allow unicode
 
   if (sObj.size() == 0 ||
       sObj["o"].is_null()) { // no "o" means not a playlis or custom API call,

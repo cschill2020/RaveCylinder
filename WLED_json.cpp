@@ -698,7 +698,8 @@ bool deserializeSegment(json &elem, byte it, byte presetId) {
         len = WLED_MAX_SEGNAME_LEN;
       seg.name = new char[len + 1];
       if (seg.name)
-        strlcpy(seg.name, name, WLED_MAX_SEGNAME_LEN + 1);
+        snprintf(seg.name, WLED_MAX_SEGNAME_LEN + 1, "%s", name);
+        //strlcpy(seg.name, name, WLED_MAX_SEGNAME_LEN + 1);
     } else {
       // but is empty (already deleted above)
       elem.erase("n");

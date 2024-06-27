@@ -8,6 +8,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <vector>
+#include <cstring>
 
 namespace ravecylinder {
 // Client side implementation for a UDP datagram server.
